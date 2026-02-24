@@ -1,51 +1,148 @@
-import { useEffect } from "react";
-import "@/App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import axios from "axios";
+import { useEffect, useState } from 'react';
+import '@/App.css';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from 'sonner';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { SocketProvider } from './contexts/SocketContext';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+import Landing from './pages/Landing';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import ClientDashboard from './pages/client/Dashboard';
+import CreateService from './pages/client/CreateService';
+import MyServices from './pages/client/MyServices';
+import DriverDashboard from './pages/driver/Dashboard';
+import AvailableServices from './pages/driver/AvailableServices';
+import DriverServices from './pages/driver/MyServices';
+import AdminDashboard from './pages/admin/Dashboard';
+import UsersManagement from './pages/admin/Users';
+import CommissionConfig from './pages/admin/Commission';
+import Chat from './pages/Chat';
 
-const Home = () => {
-  const helloWorldApi = async () => {
-    try {
-      const response = await axios.get(`${API}/`);
-      console.log(response.data.message);
-    } catch (e) {
-      console.error(e, `errored out requesting / api`);
-    }
-  };
+function ProtectedRoute({ children, allowedRoles }) {
+  const { user, loading } = useAuth();
 
-  useEffect(() => {
-    helloWorldApi();
-  }, []);
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#0a1120]">
+        <div className="text-[#00e0ff] text-xl">Cargando...</div>
+      </div>
+    );
+  }
 
-  return (
-    <div>
-      <header className="App-header">
-        <a
-          className="App-link"
-          href="https://emergent.sh"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4" />
-        </a>
-        <p className="mt-5">Building something incredible ~!</p>
-      </header>
-    </div>
-  );
-};
+  if (!user) {
+    return <Navigate to="/login" />;
+  }
+
+  if (allowedRoles && !allowedRoles.includes(user.role)) {
+    return <Navigate to="/" />;
+  }
+
+  return children;
+}
 
 function App() {
   return (
     <div className="App">
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />}>
-            <Route index element={<Home />} />
-          </Route>
-        </Routes>
+        <AuthProvider>
+          <SocketProvider>
+            <Routes>
+              <Route path="/" element={<Landing />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              
+              {/* Client Routes */}
+              <Route
+                path="/client/dashboard"
+                element={
+                  <ProtectedRoute allowedRoles={['client']}>
+                    <ClientDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/client/create-service"
+                element={
+                  <ProtectedRoute allowedRoles={['client']}>
+                    <CreateService />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/client/my-services"
+                element={
+                  <ProtectedRoute allowedRoles={['client']}>
+                    <MyServices />
+                  </ProtectedRoute>
+                }
+              />
+              
+              {/* Driver Routes */}
+              <Route
+                path="/driver/dashboard"
+                element={
+                  <ProtectedRoute allowedRoles={['driver']}>
+                    <DriverDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/driver/available"
+                element={
+                  <ProtectedRoute allowedRoles={['driver']}>
+                    <AvailableServices />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/driver/my-services"
+                element={
+                  <ProtectedRoute allowedRoles={['driver']}>
+                    <DriverServices />
+                  </ProtectedRoute>
+                }
+              />
+              
+              {/* Admin Routes */}
+              <Route
+                path="/admin/dashboard"
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/users"
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <UsersManagement />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/commission"
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <CommissionConfig />
+                  </ProtectedRoute>
+                }
+              />
+              
+              {/* Chat Route */}
+              <Route
+                path="/chat/:serviceId"
+                element={
+                  <ProtectedRoute>
+                    <Chat />
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
+            <Toaster position="top-right" theme="dark" />
+          </SocketProvider>
+        </AuthProvider>
       </BrowserRouter>
     </div>
   );

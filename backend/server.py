@@ -27,12 +27,11 @@ JWT_SECRET = os.environ.get('JWT_SECRET', 'your-secret-key-change-this')
 JWT_ALGORITHM = 'HS256'
 JWT_EXPIRATION_HOURS = 24
 
+sio = socketio.AsyncServer(async_mode='asgi', cors_allowed_origins='*')
+
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
 security = HTTPBearer()
-
-sio = socketio.AsyncServer(async_mode='asgi', cors_allowed_origins='*')
-socket_app = socketio.ASGIApp(sio, app)
 
 active_connections: Dict[str, Set[str]] = {}
 

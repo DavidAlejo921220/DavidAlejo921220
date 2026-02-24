@@ -1,0 +1,148 @@
+{
+  "brand_identity": {
+    "name": "TowNexus",
+    "mission": "The futuristic marketplace for on-demand roadside assistance.",
+    "emotional_tone": "Technological Trust, Rapid Response, Cyber-Professional.",
+    "visual_style": "Futuristic Tech / Cyberpunk Lite",
+    "logo_url": "https://customer-assets.emergentagent.com/job_tow-nexus/artifacts/ykgd2d1v_WhatsApp%20Image%202026-02-23%20at%207.40.40%20PM.jpeg",
+    "theme_mode": "dark"
+  },
+  "typography": {
+    "font_family_headings": "Rajdhani, sans-serif",
+    "font_family_body": "Inter, sans-serif",
+    "font_weights": {
+      "light": 300,
+      "regular": 400,
+      "medium": 500,
+      "bold": 700,
+      "black": 900
+    },
+    "scale": {
+      "h1": "text-5xl md:text-6xl font-bold tracking-tight",
+      "h2": "text-4xl md:text-5xl font-bold tracking-tight",
+      "h3": "text-2xl md:text-3xl font-semibold tracking-normal",
+      "body_lg": "text-lg leading-relaxed",
+      "body_base": "text-base leading-relaxed text-muted-foreground",
+      "caption": "text-sm text-muted-foreground uppercase tracking-wider"
+    },
+    "imports": [
+      "@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');"
+    ]
+  },
+  "colors": {
+    "palette": {
+      "background": {
+        "default": "#0a1120",
+        "paper": "#111827",
+        "elevated": "#1f2937"
+      },
+      "primary": {
+        "main": "#00e0ff",
+        "hover": "#33eaff",
+        "text": "#000000",
+        "glow": "0 0 20px rgba(0, 224, 255, 0.5)"
+      },
+      "secondary": {
+        "main": "#7200c4",
+        "hover": "#8e2bd9",
+        "text": "#ffffff"
+      },
+      "accent": {
+        "cyan": "#00ffff",
+        "purple": "#9d4edd",
+        "success": "#10b981",
+        "warning": "#f59e0b",
+        "error": "#ef4444"
+      },
+      "text": {
+        "primary": "#f8fafc",
+        "secondary": "#94a3b8",
+        "muted": "#64748b"
+      },
+      "border": {
+        "default": "rgba(255, 255, 255, 0.1)",
+        "active": "rgba(0, 224, 255, 0.3)"
+      }
+    },
+    "gradients": {
+      "brand_vertical": "linear-gradient(180deg, #0a1120 0%, #111827 100%)",
+      "brand_horizontal": "linear-gradient(90deg, #7200c4 0%, #00e0ff 100%)",
+      "glass": "linear-gradient(145deg, rgba(17, 24, 39, 0.7) 0%, rgba(10, 17, 32, 0.7) 100%)"
+    }
+  },
+  "layout_strategies": {
+    "client_frontend": {
+      "structure": "Map-First Interface",
+      "mobile_nav": "Bottom Sheet (Floating)",
+      "desktop_nav": "Sidebar + Floating Panels",
+      "key_feature": "Bidding Sheet - Draggable panel showing driver offers."
+    },
+    "driver_frontend": {
+      "structure": "HUD (Heads-Up Display)",
+      "top_bar": "Earnings & Status Toggles",
+      "main_view": "Map with 'Sonar' pulse for requests",
+      "bottom_controls": "Large Interaction Buttons (Accept/Decline)"
+    },
+    "admin_dashboard": {
+      "structure": "Dense Data Grid",
+      "sidebar": "Collapsible, Icon-only mode",
+      "widgets": "Bento Grid Layout for Analytics"
+    }
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-[#00e0ff] text-black hover:bg-[#33eaff] rounded-none skew-x-[-10deg] uppercase font-bold tracking-widest transition-all shadow-[0_0_15px_rgba(0,224,255,0.3)] hover:shadow-[0_0_25px_rgba(0,224,255,0.6)]",
+      "secondary": "border border-[#7200c4] text-[#7200c4] hover:bg-[#7200c4] hover:text-white rounded-none uppercase font-semibold transition-all",
+      "ghost": "text-muted-foreground hover:text-white hover:bg-white/5"
+    },
+    "cards": {
+      "glass": "bg-[#111827]/80 backdrop-blur-xl border border-white/10 shadow-2xl rounded-xl",
+      "neon": "bg-black border border-[#00e0ff]/30 shadow-[0_0_10px_rgba(0,224,255,0.1)] rounded-lg",
+      "driver_offer": "relative overflow-hidden bg-gradient-to-r from-slate-900 to-slate-800 border-l-4 border-[#00e0ff] p-4 hover:translate-x-1 transition-transform cursor-pointer"
+    },
+    "inputs": {
+      "style": "bg-black/50 border-white/10 focus:border-[#00e0ff] focus:ring-1 focus:ring-[#00e0ff] text-white placeholder:text-slate-500 rounded-md h-12"
+    },
+    "map_markers": {
+      "user": "Pulse animation, Cyan color",
+      "driver": "Car Icon, Purple color",
+      "destination": "Flag Icon, White"
+    }
+  },
+  "images": {
+    "logo": "https://customer-assets.emergentagent.com/job_tow-nexus/artifacts/ykgd2d1v_WhatsApp%20Image%202026-02-23%20at%207.40.40%20PM.jpeg",
+    "hero_bg": "https://images.unsplash.com/photo-1706197107474-c1b38d240e71?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjY2NzZ8MHwxfHNlYXJjaHwyfHxmdXR1cmlzdGljJTIwdG93JTIwdHJ1Y2slMjBuaWdodCUyMGNpdHklMjBuZW9ufGVufDB8fHx8MTc3MTg5Mzc0MHww&ixlib=rb-4.1.0&q=85",
+    "driver_avatar_placeholder": "https://images.pexels.com/photos/7807035/pexels-photo-7807035.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+    "map_style": "Dark Matter or CartoDB Dark (configured in Leaflet)"
+  },
+  "libraries": {
+    "maps": "react-leaflet",
+    "icons": "lucide-react",
+    "charts": "recharts",
+    "animations": "framer-motion",
+    "ui_base": "shadcn/ui"
+  },
+  "feature_specific_rules": {
+    "bidding_system": {
+      "visual": "A vertical list of 'Offer Cards'. Each card has a countdown timer bar at the bottom.",
+      "interaction": "Swipable on mobile. Click-to-expand on desktop."
+    },
+    "chat": {
+      "visual": "WhatsApp style but Cyberpunk. Bubbles are sharp-edged. User: Cyan/Black. Driver: Purple/White.",
+      "location_share": "Embedded map snippet in chat bubble."
+    }
+  },
+  "instructions_to_main_agent": [
+    "1. Setup the project with a dark mode default in Tailwind.",
+    "2. Use the 'Rajdhani' font for all headings to give that tech/futuristic feel immediately.",
+    "3. Create a 'LayoutWrapper' component that handles the 3 different layout modes (Client, Driver, Admin) based on the route.",
+    "4. Implement the 'Neon Button' style as a reusable variant in the Button component.",
+    "5. For the Map, use a custom dark tile layer (e.g., CartoDB Dark Matter) to match the app theme.",
+    "6. Ensure the 'Bidding' flow feels real-time: use animations for new bids appearing."
+  ],
+  "universal_guidelines": {
+    "spacing": "Use comfortable spacing (p-6, gap-4) even on mobile to prevent accidental clicks.",
+    "contrast": "Always check contrast on the dark background. Use text-slate-300 for secondary text, never dark gray.",
+    "feedback": "Every action needs a micro-interaction. Use Sonner for toasts."
+  }
+}

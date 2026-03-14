@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { DollarSign, Truck, TrendingUp, MapPin, Power } from 'lucide-react';
+import { DollarSign, Truck, TrendingUp, MapPin, Power, AlertTriangle, MessageCircle, FileWarning } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { formatCurrency } from '@/utils/currency';
@@ -12,6 +12,7 @@ import NotificationBell from '@/components/NotificationBell';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
+const WHATSAPP_HELP = '+573025159176';
 
 export default function DriverDashboard() {
   const navigate = useNavigate();
@@ -21,24 +22,44 @@ export default function DriverDashboard() {
   const [available, setAvailable] = useState(false);
   const [locationInterval, setLocationInterval] = useState(null);
   const [wallet, setWallet] = useState({ balance: 0, needs_recharge: false });
-
+  const [driverInfo, setDriverInfo] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const loadWallet = async () => {
     try {
       const response = await axios.get(`${API}/drivers/wallet`);
       setWallet(response.data);
+      setDriverInfo(response.data.driver_info || null);
       
       if (response.data.low_balance_warning) {
-        toast.warning(`⚠️ Saldo bajo: ${formatCurrency(response.data.balance)}. Recarga pronto para seguir recibiendo servicios.`, {
-          duration: 10000
-        });
+        toast.warning(`⚠️ Saldo bajo: ${formatCurrency(response.data.balance)}`, { duration: 10000 });
       }
     } catch (error) {
+      // Si no encuentra el conductor, significa que no ha completado el registro
+      if (error.response?.status === 404) {
+        setDriverInfo(null);
+      }
       console.error('Error loading wallet:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const toggleAvailability = async (checked) => {
+    // Verificar si puede activarse
+    if (checked) {
+      if (!driverInfo) {
+        toast.error('Debes completar tu registro de conductor primero');
+        navigate('/driver/registration');
+        return;
+      }
+      if (wallet.balance <= 0) {
+        toast.error('No puedes activarte con saldo $0. Contacta a soporte para recargar.');
+        openWhatsAppHelp('recarga de saldo');
+        return;
+      }
+    }
+
     setAvailable(checked);
     
     if (navigator.geolocation) {
@@ -53,25 +74,19 @@ export default function DriverDashboard() {
               }
             });
             
-            toast.success(checked ? '✅ Ahora estás disponible para recibir servicios' : '⏸️ Ahora estás no disponible');
+            toast.success(checked ? '✅ Ahora estás disponible' : '⏸️ No disponible');
             
-            // Si está disponible, iniciar actualización automática de ubicación
             if (checked) {
               const interval = setInterval(() => {
                 navigator.geolocation.getCurrentPosition((pos) => {
-                  // Actualizar ubicación cada 15 segundos
                   axios.post(`${API}/drivers/availability`, {
                     available: true,
-                    current_location: {
-                      lat: pos.coords.latitude,
-                      lng: pos.coords.longitude
-                    }
+                    current_location: { lat: pos.coords.latitude, lng: pos.coords.longitude }
                   }).catch(err => console.error('Error updating location:', err));
                 });
               }, 15000);
               setLocationInterval(interval);
             } else {
-              // Detener actualización de ubicación
               if (locationInterval) {
                 clearInterval(locationInterval);
                 setLocationInterval(null);
@@ -82,8 +97,8 @@ export default function DriverDashboard() {
             setAvailable(!checked);
           }
         },
-        (error) => {
-          toast.error('No se pudo obtener tu ubicación. Verifica los permisos.');
+        () => {
+          toast.error('No se pudo obtener tu ubicación');
           setAvailable(false);
         }
       );
@@ -115,34 +130,102 @@ export default function DriverDashboard() {
         earnings: earnings
       });
     } catch (error) {
-      toast.error('Error al cargar datos');
+      console.error('Error loading data:', error);
     }
   };
+
+  const openWhatsAppHelp = (topic = '') => {
+    const message = encodeURIComponent(`Hola, necesito ayuda con ${topic || 'GruaApp'}`);
+    window.open(`https://wa.me/${WHATSAPP_HELP.replace('+', '')}?text=${message}`, '_blank');
+  };
+
+  const canAccessServices = driverInfo && wallet.balance > 0;
+
+  // Mostrar pantalla de registro pendiente si no tiene registro de conductor
+  if (!loading && !driverInfo) {
+    return (
+      <div className="min-h-screen bg-[#0a1120]">
+        <nav className="border-b border-white/10 bg-[#111827]/80 backdrop-blur-xl">
+          <div className="container mx-auto px-6 py-4 flex justify-between items-center">
+            <img src="https://static.prod-images.emergentagent.com/jobs/4d6d68fe-1392-4b8b-95de-0896fbae6116/images/6dd94c30201b82c0db798c24c5f11f318e92f4633b0624b679a02b2944046c88.png" alt="GruaApp" className="h-10" />
+            <div className="flex items-center gap-4">
+              <NotificationBell />
+              <span className="text-slate-300">{user?.full_name}</span>
+              <Button variant="ghost" onClick={logout} className="text-slate-400 hover:text-white">Salir</Button>
+            </div>
+          </div>
+        </nav>
+
+        <div className="container mx-auto px-6 py-16">
+          <div className="max-w-xl mx-auto text-center">
+            <FileWarning className="h-24 w-24 text-yellow-400 mx-auto mb-6" />
+            <h1 className="text-4xl font-bold text-white mb-4">Completa tu Registro</h1>
+            <p className="text-slate-400 text-lg mb-8">
+              Para empezar a recibir servicios, necesitas completar tu registro con la información de tu vehículo, placa y fotos.
+            </p>
+            <Button
+              onClick={() => navigate('/driver/registration')}
+              className="bg-[#00e0ff] text-black hover:bg-[#33eaff] font-bold uppercase tracking-wider h-14 px-8 text-lg"
+              data-testid="complete-registration-button"
+            >
+              <Truck className="mr-2 h-6 w-6" />
+              Completar Registro de Conductor
+            </Button>
+            <div className="mt-8">
+              <Button
+                variant="outline"
+                onClick={() => openWhatsAppHelp('registro de conductor')}
+                className="border-green-500/50 text-green-400 hover:bg-green-500/10"
+              >
+                <MessageCircle className="h-5 w-5 mr-2" />
+                ¿Necesitas ayuda?
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#0a1120]">
       <nav className="border-b border-white/10 bg-[#111827]/80 backdrop-blur-xl">
         <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <img 
-              src="https://static.prod-images.emergentagent.com/jobs/4d6d68fe-1392-4b8b-95de-0896fbae6116/images/6dd94c30201b82c0db798c24c5f11f318e92f4633b0624b679a02b2944046c88.png" 
-              alt="TowNexus" 
-              className="h-10"
-            />
-          </div>
+          <img src="https://static.prod-images.emergentagent.com/jobs/4d6d68fe-1392-4b8b-95de-0896fbae6116/images/6dd94c30201b82c0db798c24c5f11f318e92f4633b0624b679a02b2944046c88.png" alt="GruaApp" className="h-10" />
           <div className="flex items-center gap-4">
             <NotificationBell />
             <span className="text-slate-300">Conductor: {user?.full_name}</span>
-            <Button variant="ghost" onClick={logout} className="text-slate-400 hover:text-white" data-testid="logout-button">
-              Salir
-            </Button>
+            <Button variant="ghost" onClick={logout} className="text-slate-400 hover:text-white" data-testid="logout-button">Salir</Button>
           </div>
         </div>
       </nav>
 
       <div className="container mx-auto px-6 py-8">
+        {/* Alerta de saldo 0 - BLOQUEANTE */}
+        {wallet.balance <= 0 && (
+          <div className="glass-card p-6 rounded-xl mb-8 border-2 border-red-500/50 bg-red-500/10">
+            <div className="flex items-start gap-4">
+              <AlertTriangle className="h-12 w-12 text-red-400 flex-shrink-0" />
+              <div className="flex-1">
+                <h2 className="text-2xl font-bold text-red-400 mb-2">⛔ Saldo Agotado - No puedes recibir servicios</h2>
+                <p className="text-slate-300 mb-4">
+                  Tu saldo es <span className="font-bold text-red-400">{formatCurrency(0)}</span>. 
+                  Necesitas recargar para poder activarte y ver servicios disponibles.
+                </p>
+                <Button
+                  onClick={() => openWhatsAppHelp('recarga de saldo - mi saldo es $0')}
+                  className="bg-green-500 text-white hover:bg-green-600 font-bold"
+                >
+                  <MessageCircle className="h-5 w-5 mr-2" />
+                  Contactar para Recargar
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Toggle de Disponibilidad */}
-        <div className="glass-card p-6 rounded-xl mb-8 border-2 border-[#00e0ff]/30">
+        <div className={`glass-card p-6 rounded-xl mb-8 border-2 ${canAccessServices ? 'border-[#00e0ff]/30' : 'border-red-500/30 opacity-50'}`}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Power className={`h-8 w-8 ${available ? 'text-green-400' : 'text-slate-500'}`} />
@@ -151,7 +234,9 @@ export default function DriverDashboard() {
                   Estado: {available ? 'Disponible' : 'No Disponible'}
                 </Label>
                 <p className="text-sm text-slate-400">
-                  {available ? 'Estás recibiendo solicitudes de servicio' : 'Activa para empezar a recibir servicios'}
+                  {!canAccessServices 
+                    ? '⚠️ Necesitas saldo para activarte' 
+                    : available ? 'Recibiendo solicitudes' : 'Activa para recibir servicios'}
                 </p>
               </div>
             </div>
@@ -160,6 +245,7 @@ export default function DriverDashboard() {
               checked={available}
               onCheckedChange={toggleAvailability}
               className="scale-150"
+              disabled={!canAccessServices}
               data-testid="availability-switch"
             />
           </div>
@@ -171,8 +257,15 @@ export default function DriverDashboard() {
             <p className="text-slate-400">Gestiona tus servicios y ganancias</p>
           </div>
           <Button
-            onClick={() => navigate('/driver/available')}
-            className="bg-[#00e0ff] text-black hover:bg-[#33eaff] font-bold uppercase tracking-wider"
+            onClick={() => {
+              if (!canAccessServices) {
+                toast.error('Necesitas saldo para ver servicios disponibles');
+                return;
+              }
+              navigate('/driver/available');
+            }}
+            className={`font-bold uppercase tracking-wider ${canAccessServices ? 'bg-[#00e0ff] text-black hover:bg-[#33eaff]' : 'bg-slate-600 text-slate-400 cursor-not-allowed'}`}
+            disabled={!canAccessServices}
             data-testid="view-available-button"
           >
             <MapPin className="mr-2 h-5 w-5" />
@@ -180,136 +273,126 @@ export default function DriverDashboard() {
           </Button>
         </div>
 
-
         {/* Saldo de Billetera */}
-        {wallet.needs_recharge && wallet.nequi_recharge_info && (
+        {wallet.needs_recharge && wallet.balance > 0 && wallet.nequi_recharge_info && (
           <div className="glass-card p-6 rounded-xl mb-8 border-2 border-yellow-500/50 bg-yellow-500/5">
             <div className="flex items-start gap-4">
-              <div className="bg-yellow-500/20 p-3 rounded-lg">
-                <DollarSign className="h-8 w-8 text-yellow-400" />
-              </div>
+              <DollarSign className="h-8 w-8 text-yellow-400" />
               <div className="flex-1">
-                <h3 className="text-xl font-bold text-yellow-400 mb-2">⚠️ Saldo Bajo - Recarga Requerida</h3>
+                <h3 className="text-xl font-bold text-yellow-400 mb-2">⚠️ Saldo Bajo</h3>
                 <p className="text-slate-300 mb-3">
-                  Tu saldo actual es de <span className="font-bold text-yellow-400">{formatCurrency(wallet.balance)}</span>. 
-                  Recarga para seguir recibiendo servicios.
+                  Tu saldo es <span className="font-bold text-yellow-400">{formatCurrency(wallet.balance)}</span>. 
+                  Recarga pronto.
                 </p>
                 <div className="bg-black/30 p-4 rounded-lg border border-yellow-500/30">
-                  <p className="text-white font-bold mb-2">📱 Información para Recarga Nequi:</p>
+                  <p className="text-white font-bold mb-2">📱 Recarga por Nequi:</p>
                   <p className="text-slate-300">Número: <span className="font-mono text-[#00e0ff]">{wallet.nequi_recharge_info.phone}</span></p>
                   <p className="text-slate-300">Mensaje: <span className="font-mono text-[#00e0ff]">{wallet.nequi_recharge_info.message}</span></p>
-                  <p className="text-xs text-slate-500 mt-2">
-                    Después de recargar, contacta al administrador para activar tu saldo.
-                  </p>
                 </div>
               </div>
             </div>
           </div>
         )}
 
-        <div className="grid md:grid-cols-5 gap-6 mb-8">
-          {/* Saldo Disponible */}
-          <div className={`glass-card p-6 rounded-xl border-2 ${wallet.balance < 1000 ? 'border-red-500/50' : 'border-green-500/30'}`} data-testid="stat-wallet">
-            <div className="flex items-center gap-4">
-              <div className={`p-3 rounded-lg ${wallet.balance < 1000 ? 'bg-red-500/10' : 'bg-green-500/10'}`}>
-                <DollarSign className={`h-6 w-6 ${wallet.balance < 1000 ? 'text-red-400' : 'text-green-400'}`} />
-              </div>
+        {/* Stats Grid */}
+        <div className="grid md:grid-cols-4 gap-6 mb-8">
+          <div className="glass-card p-6 rounded-xl border border-white/10">
+            <div className="flex justify-between items-start">
               <div>
                 <p className="text-slate-400 text-sm">Saldo Disponible</p>
-                <p className="text-2xl font-bold text-white">{formatCurrency(wallet.balance)}</p>
-                {wallet.balance < 1000 && (
-                  <p className="text-xs text-red-400 mt-1">¡Recarga pronto!</p>
-                )}
+                <p className={`text-3xl font-bold mt-2 ${wallet.balance <= 0 ? 'text-red-400' : wallet.balance < 1000 ? 'text-yellow-400' : 'text-green-400'}`}>
+                  {formatCurrency(wallet.balance)}
+                </p>
               </div>
-            </div>
-          </div>
-          
-          <div className="glass-card p-6 rounded-xl" data-testid="stat-earnings">
-            <div className="flex items-center gap-4">
-              <div className="bg-green-500/10 p-3 rounded-lg">
-                <DollarSign className="h-6 w-6 text-green-400" />
-              </div>
-              <div>
-                <p className="text-slate-400 text-sm">Ganancias</p>
-                <p className="text-2xl font-bold text-white">${stats.earnings.toFixed(2)}</p>
-              </div>
+              <DollarSign className={`h-8 w-8 ${wallet.balance <= 0 ? 'text-red-400' : 'text-green-400'}`} />
             </div>
           </div>
 
-          <div className="glass-card p-6 rounded-xl" data-testid="stat-total-services">
-            <div className="flex items-center gap-4">
-              <div className="bg-[#00e0ff]/10 p-3 rounded-lg">
-                <Truck className="h-6 w-6 text-[#00e0ff]" />
-              </div>
+          <div className="glass-card p-6 rounded-xl border border-white/10">
+            <div className="flex justify-between items-start">
               <div>
-                <p className="text-slate-400 text-sm">Total Servicios</p>
-                <p className="text-2xl font-bold text-white">{stats.total}</p>
+                <p className="text-slate-400 text-sm">Servicios Activos</p>
+                <p className="text-3xl font-bold text-white mt-2">{stats.active}</p>
               </div>
+              <Truck className="h-8 w-8 text-[#00e0ff]" />
             </div>
           </div>
 
-          <div className="glass-card p-6 rounded-xl" data-testid="stat-active-services">
-            <div className="flex items-center gap-4">
-              <div className="bg-yellow-500/10 p-3 rounded-lg">
-                <TrendingUp className="h-6 w-6 text-yellow-400" />
-              </div>
-              <div>
-                <p className="text-slate-400 text-sm">Activos</p>
-                <p className="text-2xl font-bold text-white">{stats.active}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="glass-card p-6 rounded-xl" data-testid="stat-completed">
-            <div className="flex items-center gap-4">
-              <div className="bg-purple-500/10 p-3 rounded-lg">
-                <TrendingUp className="h-6 w-6 text-purple-400" />
-              </div>
+          <div className="glass-card p-6 rounded-xl border border-white/10">
+            <div className="flex justify-between items-start">
               <div>
                 <p className="text-slate-400 text-sm">Completados</p>
-                <p className="text-2xl font-bold text-white">{stats.completed}</p>
+                <p className="text-3xl font-bold text-white mt-2">{stats.completed}</p>
               </div>
+              <TrendingUp className="h-8 w-8 text-purple-400" />
+            </div>
+          </div>
+
+          <div className="glass-card p-6 rounded-xl border border-white/10">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-slate-400 text-sm">Ganancias Totales</p>
+                <p className="text-3xl font-bold text-white mt-2">{formatCurrency(stats.earnings)}</p>
+              </div>
+              <DollarSign className="h-8 w-8 text-green-400" />
             </div>
           </div>
         </div>
 
-        <div className="glass-card p-6 rounded-xl">
-          <h2 className="text-2xl font-bold text-white mb-6">Mis Servicios Activos</h2>
-          
-          {services.filter(s => ['accepted', 'on_way', 'picked_up', 'in_transit'].includes(s.status)).length === 0 ? (
-            <div className="text-center py-12" data-testid="no-active-services">
+        {/* Lista de servicios */}
+        <div className="glass-card p-6 rounded-xl border border-white/10">
+          <h2 className="text-2xl font-bold text-white mb-4">Mis Servicios</h2>
+          {services.length === 0 ? (
+            <div className="text-center py-12">
               <Truck className="h-16 w-16 text-slate-600 mx-auto mb-4" />
-              <p className="text-slate-400 mb-4">No tienes servicios activos</p>
-              <Button
-                onClick={() => navigate('/driver/available')}
-                className="bg-[#00e0ff] text-black hover:bg-[#33eaff] font-bold"
-              >
-                Buscar Servicios
-              </Button>
+              <p className="text-slate-400 text-lg">No tienes servicios asignados</p>
+              {canAccessServices && (
+                <Button
+                  onClick={() => navigate('/driver/available')}
+                  className="mt-4 bg-[#00e0ff] text-black hover:bg-[#33eaff]"
+                >
+                  Buscar Servicios Disponibles
+                </Button>
+              )}
             </div>
           ) : (
             <div className="space-y-4">
-              {services
-                .filter(s => ['accepted', 'on_way', 'picked_up', 'in_transit'].includes(s.status))
-                .map((service) => (
-                  <div
-                    key={service.id}
-                    className="bg-gradient-to-r from-slate-900 to-slate-800 border-l-4 border-[#7200c4] p-5 rounded-lg hover:translate-x-1 transition-all cursor-pointer"
-                    onClick={() => navigate('/driver/my-services', { state: { serviceId: service.id } })}
-                    data-testid={`active-service-${service.id}`}
-                  >
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="text-lg font-bold text-white">{service.vehicle_brand} {service.vehicle_model}</h3>
-                        <p className="text-slate-400 text-sm">{service.vehicle_type}</p>
-                        <p className="text-[#00e0ff] font-bold mt-2">${service.final_price}</p>
-                      </div>
-                      <span className="text-yellow-400 font-semibold">{service.status}</span>
+              {services.slice(0, 5).map(service => (
+                <div key={service.id} className="p-4 border border-white/10 rounded-lg hover:bg-white/5 transition-colors">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <p className="text-white font-semibold">{service.vehicle_brand} {service.vehicle_model}</p>
+                      <p className="text-sm text-slate-400">{service.vehicle_type}</p>
+                    </div>
+                    <div className="text-right">
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                        service.status === 'completed' ? 'bg-green-500/20 text-green-400' :
+                        service.status === 'accepted' ? 'bg-blue-500/20 text-blue-400' :
+                        'bg-yellow-500/20 text-yellow-400'
+                      }`}>
+                        {service.status.toUpperCase()}
+                      </span>
+                      {service.final_price && (
+                        <p className="text-green-400 font-bold mt-1">{formatCurrency(service.final_price)}</p>
+                      )}
                     </div>
                   </div>
-                ))}
+                </div>
+              ))}
             </div>
           )}
+        </div>
+
+        {/* Botón de Ayuda flotante */}
+        <div className="fixed bottom-6 right-6">
+          <Button
+            onClick={() => openWhatsAppHelp()}
+            className="bg-green-500 text-white hover:bg-green-600 shadow-lg rounded-full h-14 px-6"
+            data-testid="floating-help-button"
+          >
+            <MessageCircle className="h-6 w-6 mr-2" />
+            Ayuda
+          </Button>
         </div>
       </div>
     </div>

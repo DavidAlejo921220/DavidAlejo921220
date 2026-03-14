@@ -161,7 +161,7 @@ async def get_driver_wallet(payload: dict = Depends(verify_token)):
     needs_recharge = balance < LOW_BALANCE_THRESHOLD
     
     nequi_info = {
-        "phone": "3508476536",
+        "phone": "3025159176",
         "message": f"Recarga GruaApp - Placa {driver.get('vehicle_plate', 'N/A')}"
     }
     
@@ -170,5 +170,12 @@ async def get_driver_wallet(payload: dict = Depends(verify_token)):
         "needs_recharge": needs_recharge,
         "low_balance_warning": balance < LOW_BALANCE_THRESHOLD,
         "transactions": transactions,
-        "nequi_recharge_info": nequi_info if needs_recharge else None
+        "nequi_recharge_info": nequi_info,
+        "driver_info": {
+            "vehicle_plate": driver.get('vehicle_plate'),
+            "vehicle_type": driver.get('vehicle_type'),
+            "vehicle_brand": driver.get('vehicle_brand'),
+            "vehicle_model": driver.get('vehicle_model'),
+            "verified": driver.get('verified', False)
+        }
     }

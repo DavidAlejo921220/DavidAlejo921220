@@ -6,7 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Mail, Lock, User, Phone, Shield } from 'lucide-react';
+import { Mail, Lock, User, Phone, MessageCircle } from 'lucide-react';
+
+const WHATSAPP_HELP = '+573025159176';
 
 export default function Register() {
   const navigate = useNavigate();
@@ -20,17 +22,22 @@ export default function Register() {
     phone: '',
     role: searchParams.get('role') || 'client',
   });
-  const [showOTP, setShowOTP] = useState(false);
-  const [otpCode, setOtpCode] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const response = await register(formData);
-      toast.success(response.message);
-      setShowOTP(true);
+      await register(formData);
+      toast.success('¡Cuenta creada exitosamente!');
+      
+      // Redirigir según el rol (sin OTP)
+      if (formData.role === 'client') {
+        navigate('/client/dashboard');
+      } else if (formData.role === 'driver') {
+        // Los conductores van a completar su registro de vehículo
+        navigate('/driver/registration');
+      }
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Error al registrarse');
     } finally {
@@ -38,83 +45,10 @@ export default function Register() {
     }
   };
 
-  const handleOTPVerify = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${BACKEND_URL}/api/auth/verify-otp`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ otp_code: otpCode })
-      });
-
-      const data = await response.json();
-      
-      if (response.ok) {
-        toast.success('Cuenta verificada exitosamente');
-        
-        if (formData.role === 'client') {
-          navigate('/client/dashboard');
-        } else if (formData.role === 'driver') {
-          navigate('/driver/dashboard');
-        }
-      } else {
-        toast.error(data.detail || 'Código OTP inválido');
-      }
-    } catch (error) {
-      toast.error('Error al verificar OTP');
-    } finally {
-      setLoading(false);
-    }
+  const openWhatsAppHelp = () => {
+    const message = encodeURIComponent('Hola, necesito ayuda con GruaApp');
+    window.open(`https://wa.me/${WHATSAPP_HELP.replace('+', '')}?text=${message}`, '_blank');
   };
-
-  if (showOTP) {
-    return (
-      <div className="min-h-screen bg-[#0a1120] flex items-center justify-center px-6">
-        <div className="w-full max-w-md">
-          <div className="text-center mb-8">
-            <Shield className="h-16 w-16 text-[#00e0ff] mx-auto mb-4" />
-            <h1 className="text-4xl font-bold text-white mb-2">Verifica tu Email</h1>
-            <p className="text-slate-400">Ingresa el código de 6 dígitos enviado a tu correo</p>
-          </div>
-
-          <form onSubmit={handleOTPVerify} className="glass-card p-8 rounded-xl" data-testid="otp-form">
-            <div className="space-y-6">
-              <div>
-                <Label htmlFor="otp" className="text-slate-300 mb-2 block">Código OTP</Label>
-                <Input
-                  id="otp"
-                  type="text"
-                  placeholder="123456"
-                  value={otpCode}
-                  onChange={(e) => setOtpCode(e.target.value)}
-                  className="bg-black/50 border-white/10 focus:border-[#00e0ff] text-white text-center text-2xl tracking-widest h-14"
-                  maxLength={6}
-                  required
-                  data-testid="otp-input"
-                />
-              </div>
-
-              <Button
-                type="submit"
-                className="w-full bg-[#00e0ff] text-black hover:bg-[#33eaff] font-bold uppercase tracking-wider h-12"
-                disabled={loading}
-                data-testid="otp-verify-button"
-              >
-                {loading ? 'Verificando...' : 'Verificar'}
-              </Button>
-            </div>
-          </form>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-[#0a1120] flex items-center justify-center px-6 py-12">
@@ -122,11 +56,11 @@ export default function Register() {
         <div className="text-center mb-8">
           <img 
             src="https://static.prod-images.emergentagent.com/jobs/4d6d68fe-1392-4b8b-95de-0896fbae6116/images/6dd94c30201b82c0db798c24c5f11f318e92f4633b0624b679a02b2944046c88.png" 
-            alt="TowNexus" 
+            alt="GruaApp" 
             className="h-16 mx-auto mb-4"
           />
           <h1 className="text-4xl font-bold text-white mb-2">Crear Cuenta</h1>
-          <p className="text-slate-400">Únete a TowNexus hoy</p>
+          <p className="text-slate-400">Únete a GruaApp hoy</p>
         </div>
 
         <form onSubmit={handleSubmit} className="glass-card p-8 rounded-xl" data-testid="register-form">
@@ -185,7 +119,7 @@ export default function Register() {
                 <Input
                   id="phone"
                   type="tel"
-                  placeholder="+1234567890"
+                  placeholder="3001234567"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   className="bg-black/50 border-white/10 focus:border-[#00e0ff] text-white pl-10 h-12"
@@ -207,6 +141,7 @@ export default function Register() {
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   className="bg-black/50 border-white/10 focus:border-[#00e0ff] text-white pl-10 h-12"
                   required
+                  minLength={6}
                   data-testid="register-password-input"
                 />
               </div>
@@ -231,6 +166,20 @@ export default function Register() {
             </p>
           </div>
         </form>
+
+        {/* Botón de Ayuda WhatsApp */}
+        <div className="mt-6 text-center">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={openWhatsAppHelp}
+            className="border-green-500/50 text-green-400 hover:bg-green-500/10 hover:text-green-300"
+            data-testid="help-whatsapp-button"
+          >
+            <MessageCircle className="h-5 w-5 mr-2" />
+            ¿Necesitas ayuda? Escríbenos
+          </Button>
+        </div>
       </div>
     </div>
   );

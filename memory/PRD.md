@@ -3,6 +3,22 @@
 ## Descripción del Producto
 GruaApp es un marketplace de servicios de grúa on-demand para Colombia, similar a InDriver. Permite a clientes solicitar servicios de grúa, conductores ofertar precios, y administradores gestionar la plataforma.
 
+## Cambios Recientes (14 Mar 2026)
+
+### ✅ Cambios Implementados
+1. **Sin OTP** - Registro sin verificación de email (usuarios auto-verificados)
+2. **Conductores**: Registro de vehículo OBLIGATORIO (placa + foto de grúa con placa visible + tarjeta de propiedad)
+3. **Bloqueo por saldo $0** - Conductores con saldo 0 no pueden ver ni aceptar servicios
+4. **Bloqueo sin registro** - Conductores sin registro completo no pueden operar
+5. **Botón de Ayuda WhatsApp** (+573025159176) en todas las pantallas
+6. **Formulario de Servicio Mejorado**:
+   - Punto de RECOGIDA obligatorio (marcador verde en mapa)
+   - Punto de DESTINO obligatorio (marcador rojo en mapa)
+   - Direcciones de texto obligatorias
+   - Instrucciones claras de cómo funciona
+7. **Campanita de Notificaciones** en todos los dashboards
+8. **Moneda COP** - Formato de pesos colombianos
+
 ## Arquitectura Técnica
 
 ### Stack Tecnológico
@@ -10,10 +26,10 @@ GruaApp es un marketplace de servicios de grúa on-demand para Colombia, similar
 - **Frontend**: React con TailwindCSS y Shadcn/UI
 - **Base de Datos**: MongoDB (Motor - async driver)
 - **WebSockets**: Socket.IO para tiempo real
-- **Email**: Resend API para OTP
+- **Email**: Resend API (configurado pero OTP deshabilitado)
 - **Imágenes**: Cloudinary para almacenamiento
 
-### Estructura del Backend (Refactorizado)
+### Estructura del Backend
 ```
 /app/backend/
 ├── main.py              # Punto de entrada FastAPI
@@ -22,9 +38,6 @@ GruaApp es un marketplace de servicios de grúa on-demand para Colombia, similar
 ├── database.py          # Conexión MongoDB
 ├── auth.py              # Utilidades JWT
 ├── websocket_manager.py # Gestor Socket.IO
-├── models.py            # Modelos Pydantic
-├── utils.py             # Utilidades (OTP, distancias)
-├── cloudinary_helper.py # Upload de imágenes
 ├── routers/
 │   ├── auth_router.py     # /api/auth/*
 │   ├── drivers_router.py  # /api/drivers/*
@@ -34,91 +47,48 @@ GruaApp es un marketplace de servicios de grúa on-demand para Colombia, similar
 │   ├── ratings_router.py  # /api/ratings/*
 │   └── admin_router.py    # /api/admin/*
 └── tests/
-    ├── conftest.py
-    ├── test_auth.py
-    ├── test_admin.py
-    └── test_services.py
 ```
 
-## Características Implementadas ✅
+## Flujos de Usuario
 
-### Sistema de Autenticación
-- ✅ Registro de usuarios (cliente/conductor/admin)
-- ✅ Login con JWT
-- ✅ Verificación OTP por email (Resend)
-- ✅ Reenvío de OTP
+### Conductor Nuevo
+1. Registro (email, contraseña, teléfono) → Auto-verificado
+2. Redirigido a `/driver/registration` para completar:
+   - Datos del vehículo (tipo, marca, modelo)
+   - **PLACA OBLIGATORIA**
+   - **Foto de grúa con PLACA VISIBLE (obligatoria)**
+   - Tarjeta de propiedad (obligatoria)
+3. Recibe bono inicial de $5,000 COP
+4. Puede activarse si tiene saldo > 0
 
-### Panel de Cliente
-- ✅ Dashboard personalizado
-- ✅ Creación de solicitudes de servicio
-- ✅ Mapa interactivo para ubicaciones
-- ✅ Vista de ofertas de conductores
-- ✅ Aceptar/rechazar ofertas
-- ✅ Seguimiento en tiempo real
-- ✅ Chat con conductor
-- ✅ Historial de servicios
-- ✅ **Campanita de notificaciones** con eventos en tiempo real
+### Cliente
+1. Registro → Auto-verificado → Dashboard
+2. Crear servicio:
+   - Datos del vehículo
+   - **Punto de RECOGIDA** (mapa + dirección)
+   - **Punto de DESTINO** (mapa + dirección)
+3. Recibe ofertas de conductores
+4. Acepta/rechaza ofertas
 
-### Panel de Conductor
-- ✅ Registro con documentos (Cloudinary)
-- ✅ Toggle de disponibilidad
-- ✅ Lista de servicios disponibles (ordenados por proximidad)
-- ✅ Crear ofertas de precio
-- ✅ Gestión de servicios activos
-- ✅ Sistema de billetera
-- ✅ Historial de transacciones
-- ✅ Notificaciones de saldo bajo
-- ✅ **Campanita de notificaciones** con alertas de:
-  - Nuevos servicios disponibles
-  - Ofertas aceptadas/rechazadas
-  - Actualizaciones de saldo
-  - Mensajes de chat
+### Administrador
+1. Login → Dashboard con métricas
+2. Gestión de billeteras:
+   - Ver lista de conductores
+   - **Clic en PLACA para editar saldo**
+   - Recargar saldo manualmente
 
-### Panel de Administración
-- ✅ Dashboard con métricas
-- ✅ Gestión de usuarios (bloquear/desbloquear)
-- ✅ **Gestión de billeteras mejorada**:
-  - Ver lista de conductores con saldos
-  - **Clic en PLACA para editar saldo directamente**
-  - Dos modos: "Añadir Monto" y "Establecer Saldo"
-  - Visualización de diferencia (+/-) en tiempo real
-- ✅ Recarga manual de saldos
-- ✅ Configuración de comisiones
-- ✅ **Campanita de notificaciones**
+## Restricciones de Negocio
 
-### Sistema de Billetera
-- ✅ Saldo inicial de $5,000 COP para nuevos conductores
-- ✅ Deducción automática de comisión (5%) al aceptar oferta
-- ✅ Alertas de saldo bajo (<$1,000 COP)
-- ✅ **Edición directa de saldo por admin (clic en placa)**
-- ✅ Historial de transacciones con notas
+### Conductores
+- **Saldo 0** = No puede ver servicios, no puede activarse
+- **Sin registro de vehículo** = No puede operar
+- **Comisión 5%** se descuenta automáticamente al aceptar oferta
 
-### Sistema de Notificaciones (NUEVO)
-- ✅ **Campanita de notificaciones** en todos los dashboards
-- ✅ Badge con contador de notificaciones no leídas
-- ✅ Tipos de notificaciones:
-  - 🚗 Nuevos servicios (para conductores)
-  - 💰 Nuevas ofertas (para clientes)
-  - ✅ Ofertas aceptadas
-  - ❌ Ofertas rechazadas
-  - 💵 Recargas de saldo
-  - 💸 Comisiones descontadas
-  - ⚠️ Alertas de saldo bajo
-  - 🚛 Conductor cercano
-  - 💬 Nuevos mensajes de chat
-- ✅ Marcar como leídas individual o todas
-- ✅ Borrar notificaciones
-- ✅ Persistencia en localStorage
+### Contacto de Ayuda
+- WhatsApp: **+573025159176**
+- Presente en todas las pantallas como botón flotante verde
 
-### Tiempo Real (WebSockets)
-- ✅ Notificaciones de nuevos servicios
-- ✅ Actualización de ubicación del conductor
-- ✅ Alertas de conductor cercano
-- ✅ Chat en tiempo real
-- ✅ Actualizaciones de estado de servicio
-- ✅ **Notificaciones push integradas en la app**
-
-## Conductores Registrados (Prueba)
+## Conductores Registrados
 
 | Nombre | Email | Placa | Saldo |
 |--------|-------|-------|-------|
@@ -127,30 +97,23 @@ GruaApp es un marketplace de servicios de grúa on-demand para Colombia, similar
 ## Credenciales de Prueba
 
 - **Admin**: admin@gruaapp.com / Admin2026!
+- **Cliente test**: testcliente@test.com / test1234
 
-## Estado de Testing (14 Mar 2026)
-
-- **Backend**: 18/18 tests pasando (100%)
-- **Frontend**: 25/25 tests pasando (100%)
-- **Archivos de test**: `/app/backend/tests/`, `/app/tests/e2e/`
-
-## Próximos Pasos (Backlog)
+## Backlog
 
 ### P1 - Alta Prioridad
-- [ ] Mejorar experiencia de tracking en tiempo real
-- [ ] Agregar sonido a notificaciones
+- [ ] Agregar sonidos a notificaciones
+- [ ] Mejorar tracking en tiempo real del conductor
 
 ### P2 - Media Prioridad
 - [ ] App móvil Android (React Native)
 - [ ] Sistema de precios sugeridos automáticos
-- [ ] Historial completo de servicios con filtros
 
 ### P3 - Baja Prioridad
 - [ ] Asignación automática estilo Uber
 - [ ] Migración a PostgreSQL (opcional)
-- [ ] Panel de reportes avanzados
 
 ## Moneda y Localización
-- Moneda: COP (Pesos Colombianos)
-- Idioma: Español
-- País: Colombia
+- **Moneda**: COP (Pesos Colombianos)
+- **Idioma**: Español
+- **País**: Colombia

@@ -2,14 +2,16 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Plus, MapPin, Clock, TrendingUp } from 'lucide-react';
+import { Plus, MapPin, Clock, TrendingUp, MessageCircle } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import NotificationBell from '@/components/NotificationBell';
 import AvailableDriversMap from '@/components/AvailableDriversMap';
+import { formatCurrency } from '@/utils/currency';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
+const WHATSAPP_HELP = '+573025159176';
 
 export default function ClientDashboard() {
   const navigate = useNavigate();
@@ -190,6 +192,21 @@ export default function ClientDashboard() {
               ))}
             </div>
           )}
+        </div>
+
+        {/* Botón de Ayuda flotante */}
+        <div className="fixed bottom-6 right-6">
+          <Button
+            onClick={() => {
+              const message = encodeURIComponent('Hola, necesito ayuda con GruaApp');
+              window.open(`https://wa.me/${WHATSAPP_HELP.replace('+', '')}?text=${message}`, '_blank');
+            }}
+            className="bg-green-500 text-white hover:bg-green-600 shadow-lg rounded-full h-14 px-6"
+            data-testid="floating-help-button"
+          >
+            <MessageCircle className="h-6 w-6 mr-2" />
+            Ayuda
+          </Button>
         </div>
       </div>
     </div>

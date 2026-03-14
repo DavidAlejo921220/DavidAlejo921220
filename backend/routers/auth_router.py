@@ -30,22 +30,19 @@ async def register(data: UserRegister):
         "full_name": data.full_name,
         "phone": data.phone,
         "role": data.role,
-        "verified": False,
-        "otp_code": otp_code,
-        "otp_expiry": (datetime.now(timezone.utc) + timedelta(minutes=10)).isoformat(),
+        "verified": True,  # Auto-verificado (sin OTP)
         "created_at": datetime.now(timezone.utc).isoformat(),
         "reputation_score": 5.0,
         "status": "active"
     }
     
     await db.users.insert_one(user_dict)
-    await send_otp_email(data.email, otp_code)
     
     token = create_token(user_dict['id'], user_dict['role'])
     return AuthResponse(
         token=token,
         user=UserResponse(**{k: v for k, v in user_dict.items() if k != 'password'}),
-        message="Usuario registrado. Verifica tu email con el código OTP."
+        message="¡Cuenta creada exitosamente!"
     )
 
 @router.post("/login", response_model=AuthResponse)

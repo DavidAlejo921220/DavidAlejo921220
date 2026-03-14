@@ -40,6 +40,13 @@ class DriverRegister(BaseModel):
     vehicle_plate: str
     license_number: str
     insurance_info: Optional[str] = None
+    driver_photo_url: Optional[str] = None
+    vehicle_registration_photo_url: str  # Tarjeta de propiedad (obligatoria)
+    vehicle_photo_url: Optional[str] = None  # Foto de la grúa (opcional)
+
+class DriverAvailabilityUpdate(BaseModel):
+    available: bool
+    current_location: Optional[Dict[str, float]] = None
 
 class ServiceCreate(BaseModel):
     vehicle_type: str
@@ -69,6 +76,7 @@ class ServiceResponse(BaseModel):
     status: str
     driver_id: Optional[str] = None
     final_price: Optional[float] = None
+    distance_to_driver: Optional[float] = None
     created_at: str
     updated_at: str
 
@@ -132,3 +140,7 @@ class CommissionConfig(BaseModel):
     default_rate: float
     vehicle_rates: Optional[Dict[str, float]] = {}
     zone_rates: Optional[Dict[str, float]] = {}
+
+class LocationUpdate(BaseModel):
+    service_id: str
+    location: Dict[str, float]

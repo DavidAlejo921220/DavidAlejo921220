@@ -14,7 +14,7 @@ import socketio
 from typing import Dict, Set
 
 from models import *
-from utils import send_otp_email, generate_otp
+from utils import send_otp_email, generate_otp, calculate_distance
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -154,6 +154,96 @@ async def register_driver(data: DriverRegister, payload: dict = Depends(verify_t
     await db.drivers.insert_one(driver_dict)
     return {"message": "Información de conductor registrada. Pendiente de verificación."}
 
+@api_router.post("/drivers/availability", response_model=dict)
+async def update_driver_availability(data: DriverAvailabilityUpdate, payload: dict = Depends(verify_token)):
+    if payload['role'] != 'driver':
+        raise HTTPException(status_code=403, detail="Solo conductores")
+    
+    update_data = {"available": data.available}
+    
+    if data.current_location:
+        update_data["current_location"] = data.current_location
+        update_data["last_location_update"] = datetime.now(timezone.utc).isoformat()
+    
+    await db.drivers.update_one(
+        {"user_id": payload['user_id']},
+        {"$set": update_data}
+    )
+    
+    await sio.emit('driver_availability_changed', {
+        'driver_id': payload['user_id'],
+        'available': data.available,
+        'location': data.current_location
+    }, room='all_clients')
+    
+    return {"message": "Disponibilidad actualizada"}
+
+@api_router.get("/drivers/available", response_model=list)
+async def get_available_drivers():
+    """Obtiene todos los conductores disponibles con su ubicación"""
+    drivers = await db.drivers.find(
+        {"available": True},
+        {"_id": 0}
+    ).to_list(1000)
+    
+    result = []
+    for driver in drivers:
+        user = await db.users.find_one({"id": driver['user_id']}, {"_id": 0, "password": 0})
+        if user:
+            result.append({
+                "driver_id": driver['user_id'],
+                "full_name": user['full_name'],
+                "reputation_score": user['reputation_score'],
+                "vehicle_type": driver['vehicle_type'],
+                "vehicle_brand": driver['vehicle_brand'],
+                "vehicle_model": driver['vehicle_model'],
+                "current_location": driver.get('current_location'),
+                "driver_photo_url": driver.get('driver_photo_url'),
+                "vehicle_photo_url": driver.get('vehicle_photo_url')
+            })
+    
+    return result
+
+@api_router.post("/drivers/location", response_model=dict)
+async def update_driver_location(data: LocationUpdate, payload: dict = Depends(verify_token)):
+    """Actualiza ubicación del conductor en tiempo real"""
+    if payload['role'] != 'driver':
+        raise HTTPException(status_code=403, detail="Solo conductores")
+    
+    await db.drivers.update_one(
+        {"user_id": payload['user_id']},
+        {"$set": {
+            "current_location": data.location,
+            "last_location_update": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    await sio.emit('driver_location_update', {
+        'service_id': data.service_id,
+        'driver_id': payload['user_id'],
+        'location': data.location
+    }, room=f'service_{data.service_id}')
+    
+    service = await db.services.find_one({"id": data.service_id}, {"_id": 0})
+    if service and service.get('pickup_location'):
+        distance = calculate_distance(
+            data.location['lat'],
+            data.location['lng'],
+            service['pickup_location']['lat'],
+            service['pickup_location']['lng']
+        )
+        
+        if distance < 0.5:
+            await sio.emit('driver_nearby', {
+                'service_id': data.service_id,
+                'driver_id': payload['user_id'],
+                'distance_meters': int(distance * 1000),
+                'message': f'¡La grúa está a {int(distance * 1000)} metros de distancia!'
+            }, room=f'service_{data.service_id}')
+    
+    return {"message": "Ubicación actualizada"}
+
+
 @api_router.post("/services/create", response_model=ServiceResponse)
 async def create_service(data: ServiceCreate, payload: dict = Depends(verify_token)):
     if payload['role'] != 'client':
@@ -183,10 +273,30 @@ async def get_available_services(payload: dict = Depends(verify_token)):
     if payload['role'] != 'driver':
         raise HTTPException(status_code=403, detail="Solo conductores")
     
+    driver = await db.drivers.find_one({"user_id": payload['user_id']}, {"_id": 0})
+    
     services = await db.services.find(
         {"status": {"$in": ["created", "negotiating"]}},
         {"_id": 0}
     ).to_list(100)
+    
+    if driver and driver.get('current_location'):
+        driver_location = driver['current_location']
+        services_with_distance = []
+        
+        for service in services:
+            if service.get('pickup_location'):
+                distance = calculate_distance(
+                    driver_location['lat'],
+                    driver_location['lng'],
+                    service['pickup_location']['lat'],
+                    service['pickup_location']['lng']
+                )
+                service['distance_to_driver'] = round(distance, 2)
+                services_with_distance.append(service)
+        
+        services_with_distance.sort(key=lambda x: x.get('distance_to_driver', float('inf')))
+        return [ServiceResponse(**s) for s in services_with_distance]
     
     return [ServiceResponse(**s) for s in services]
 

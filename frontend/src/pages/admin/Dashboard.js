@@ -6,6 +6,7 @@ import { Users, Truck, DollarSign, Activity, Settings } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import axios from 'axios';
 import { toast } from 'sonner';
+import NotificationBell from '@/components/NotificationBell';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -76,6 +77,7 @@ export default function AdminDashboard() {
             >
               Billeteras
             </Button>
+            <NotificationBell />
             <span className="text-slate-300">Admin: {user?.full_name}</span>
             <Button variant="ghost" onClick={logout} className="text-slate-400 hover:text-white" data-testid="logout-button">
               Salir

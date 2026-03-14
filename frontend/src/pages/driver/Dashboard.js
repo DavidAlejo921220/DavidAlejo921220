@@ -8,6 +8,7 @@ import { DollarSign, Truck, TrendingUp, MapPin, Power } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { formatCurrency } from '@/utils/currency';
+import NotificationBell from '@/components/NotificationBell';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -130,6 +131,7 @@ export default function DriverDashboard() {
             />
           </div>
           <div className="flex items-center gap-4">
+            <NotificationBell />
             <span className="text-slate-300">Conductor: {user?.full_name}</span>
             <Button variant="ghost" onClick={logout} className="text-slate-400 hover:text-white" data-testid="logout-button">
               Salir

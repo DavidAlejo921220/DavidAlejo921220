@@ -57,6 +57,7 @@ GruaApp es un marketplace de servicios de grúa on-demand para Colombia, similar
 - ✅ Seguimiento en tiempo real
 - ✅ Chat con conductor
 - ✅ Historial de servicios
+- ✅ **Campanita de notificaciones** con eventos en tiempo real
 
 ### Panel de Conductor
 - ✅ Registro con documentos (Cloudinary)
@@ -67,20 +68,47 @@ GruaApp es un marketplace de servicios de grúa on-demand para Colombia, similar
 - ✅ Sistema de billetera
 - ✅ Historial de transacciones
 - ✅ Notificaciones de saldo bajo
+- ✅ **Campanita de notificaciones** con alertas de:
+  - Nuevos servicios disponibles
+  - Ofertas aceptadas/rechazadas
+  - Actualizaciones de saldo
+  - Mensajes de chat
 
 ### Panel de Administración
 - ✅ Dashboard con métricas
 - ✅ Gestión de usuarios (bloquear/desbloquear)
-- ✅ Gestión de billeteras de conductores
+- ✅ **Gestión de billeteras mejorada**:
+  - Ver lista de conductores con saldos
+  - **Clic en PLACA para editar saldo directamente**
+  - Dos modos: "Añadir Monto" y "Establecer Saldo"
+  - Visualización de diferencia (+/-) en tiempo real
 - ✅ Recarga manual de saldos
 - ✅ Configuración de comisiones
+- ✅ **Campanita de notificaciones**
 
 ### Sistema de Billetera
 - ✅ Saldo inicial de $5,000 COP para nuevos conductores
 - ✅ Deducción automática de comisión (5%) al aceptar oferta
 - ✅ Alertas de saldo bajo (<$1,000 COP)
-- ✅ Recarga manual por admin
-- ✅ Historial de transacciones
+- ✅ **Edición directa de saldo por admin (clic en placa)**
+- ✅ Historial de transacciones con notas
+
+### Sistema de Notificaciones (NUEVO)
+- ✅ **Campanita de notificaciones** en todos los dashboards
+- ✅ Badge con contador de notificaciones no leídas
+- ✅ Tipos de notificaciones:
+  - 🚗 Nuevos servicios (para conductores)
+  - 💰 Nuevas ofertas (para clientes)
+  - ✅ Ofertas aceptadas
+  - ❌ Ofertas rechazadas
+  - 💵 Recargas de saldo
+  - 💸 Comisiones descontadas
+  - ⚠️ Alertas de saldo bajo
+  - 🚛 Conductor cercano
+  - 💬 Nuevos mensajes de chat
+- ✅ Marcar como leídas individual o todas
+- ✅ Borrar notificaciones
+- ✅ Persistencia en localStorage
 
 ### Tiempo Real (WebSockets)
 - ✅ Notificaciones de nuevos servicios
@@ -88,25 +116,13 @@ GruaApp es un marketplace de servicios de grúa on-demand para Colombia, similar
 - ✅ Alertas de conductor cercano
 - ✅ Chat en tiempo real
 - ✅ Actualizaciones de estado de servicio
+- ✅ **Notificaciones push integradas en la app**
 
-## APIs Principales
+## Conductores Registrados (Prueba)
 
-| Endpoint | Método | Descripción |
-|----------|--------|-------------|
-| `/api/health` | GET | Health check |
-| `/api/auth/register` | POST | Registro de usuario |
-| `/api/auth/login` | POST | Login |
-| `/api/auth/verify-otp` | POST | Verificar OTP |
-| `/api/drivers/register` | POST | Registro de vehículo |
-| `/api/drivers/availability` | POST | Toggle disponibilidad |
-| `/api/drivers/wallet` | GET | Ver billetera |
-| `/api/services/create` | POST | Crear servicio |
-| `/api/services/available` | GET | Servicios disponibles |
-| `/api/offers/create` | POST | Crear oferta |
-| `/api/offers/{id}/accept` | POST | Aceptar oferta |
-| `/api/admin/dashboard` | GET | Métricas admin |
-| `/api/admin/drivers/wallets` | GET | Lista billeteras |
-| `/api/admin/drivers/recharge` | POST | Recargar saldo |
+| Nombre | Email | Placa | Saldo |
+|--------|-------|-------|-------|
+| Giovanny Beltran | transportesunir1@gmail.com | BHS369 | $50,000 COP |
 
 ## Credenciales de Prueba
 
@@ -121,9 +137,8 @@ GruaApp es un marketplace de servicios de grúa on-demand para Colombia, similar
 ## Próximos Pasos (Backlog)
 
 ### P1 - Alta Prioridad
-- [ ] Actualizar logo placeholder a branding oficial GruaApp
-- [ ] Implementar notificaciones push para conductores
 - [ ] Mejorar experiencia de tracking en tiempo real
+- [ ] Agregar sonido a notificaciones
 
 ### P2 - Media Prioridad
 - [ ] App móvil Android (React Native)

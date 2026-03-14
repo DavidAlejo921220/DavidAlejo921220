@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Plus, MapPin, Clock, TrendingUp } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
+import NotificationBell from '@/components/NotificationBell';
 import AvailableDriversMap from '@/components/AvailableDriversMap';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -71,6 +72,7 @@ export default function ClientDashboard() {
             />
           </div>
           <div className="flex items-center gap-4">
+            <NotificationBell />
             <span className="text-slate-300">Hola, {user?.full_name}</span>
             <Button variant="ghost" onClick={logout} className="text-slate-400 hover:text-white" data-testid="logout-button">
               Salir

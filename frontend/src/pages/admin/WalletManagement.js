@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, DollarSign, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, DollarSign, AlertTriangle, Edit, Wallet, RefreshCw } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { formatCurrency } from '@/utils/currency';
@@ -21,17 +21,21 @@ export default function WalletManagement() {
   const [selectedDriver, setSelectedDriver] = useState(null);
   const [rechargeData, setRechargeData] = useState({ amount: '', notes: '' });
   const [recharging, setRecharging] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [newBalance, setNewBalance] = useState('');
 
   useEffect(() => {
     loadDriverWallets();
   }, []);
 
   const loadDriverWallets = async () => {
+    setLoading(true);
     try {
       const response = await axios.get(`${API}/admin/drivers/wallets`);
       setDrivers(response.data);
     } catch (error) {
-      toast.error('Error al cargar billeteras');
+      console.error('Error loading wallets:', error);
+      toast.error('Error al cargar billeteras. Verifica que hayas iniciado sesión como admin.');
     } finally {
       setLoading(false);
     }
@@ -48,22 +52,64 @@ export default function WalletManagement() {
       const response = await axios.post(`${API}/admin/drivers/recharge`, {
         driver_id: selectedDriver.driver_id,
         amount: parseFloat(rechargeData.amount),
-        notes: rechargeData.notes
+        notes: rechargeData.notes || 'Recarga manual'
       });
 
       toast.success(`✅ ${response.data.message}`);
       setShowRechargeDialog(false);
       setRechargeData({ amount: '', notes: '' });
+      setEditMode(false);
       loadDriverWallets();
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Error al recargar');
+      console.error('Recharge error:', error);
+      toast.error(error.response?.data?.detail || 'Error al recargar. Verifica tu sesión.');
     } finally {
       setRecharging(false);
     }
   };
 
-  const openRechargeDialog = (driver) => {
+  const handleSetBalance = async () => {
+    const targetBalance = parseFloat(newBalance);
+    if (isNaN(targetBalance) || targetBalance < 0) {
+      toast.error('Ingresa un saldo válido');
+      return;
+    }
+
+    const currentBalance = selectedDriver.wallet_balance || 0;
+    const difference = targetBalance - currentBalance;
+
+    if (difference === 0) {
+      toast.info('El saldo es el mismo, no hay cambios');
+      setShowRechargeDialog(false);
+      return;
+    }
+
+    setRecharging(true);
+    try {
+      const response = await axios.post(`${API}/admin/drivers/recharge`, {
+        driver_id: selectedDriver.driver_id,
+        amount: difference,
+        notes: `Ajuste de saldo: ${formatCurrency(currentBalance)} → ${formatCurrency(targetBalance)}`
+      });
+
+      toast.success(`✅ Saldo actualizado a ${formatCurrency(targetBalance)}`);
+      setShowRechargeDialog(false);
+      setNewBalance('');
+      setEditMode(false);
+      loadDriverWallets();
+    } catch (error) {
+      console.error('Set balance error:', error);
+      toast.error(error.response?.data?.detail || 'Error al actualizar saldo');
+    } finally {
+      setRecharging(false);
+    }
+  };
+
+  const openRechargeDialog = (driver, isEditMode = false) => {
     setSelectedDriver(driver);
+    setEditMode(isEditMode);
+    setNewBalance(driver.wallet_balance?.toString() || '0');
+    setRechargeData({ amount: '', notes: '' });
     setShowRechargeDialog(true);
   };
 
@@ -79,7 +125,16 @@ export default function WalletManagement() {
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
+          <Wallet className="h-6 w-6 text-[#00e0ff]" />
           <h1 className="text-2xl font-bold text-white">Gestión de Billeteras</h1>
+          <Button
+            variant="ghost"
+            onClick={loadDriverWallets}
+            className="ml-auto text-slate-400 hover:text-white"
+            data-testid="refresh-button"
+          >
+            <RefreshCw className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`} />
+          </Button>
         </div>
       </nav>
 
@@ -88,7 +143,9 @@ export default function WalletManagement() {
           <div className="flex justify-between items-center mb-6">
             <div>
               <h2 className="text-2xl font-bold text-white">Saldos de Conductores</h2>
-              <p className="text-slate-400 text-sm mt-1">Gestiona las recargas manualmente</p>
+              <p className="text-slate-400 text-sm mt-1">
+                Haz clic en la <span className="text-[#00e0ff] font-mono">PLACA</span> para editar el saldo directamente
+              </p>
             </div>
             <div className="text-right">
               <p className="text-sm text-slate-400">Total conductores</p>
@@ -97,14 +154,25 @@ export default function WalletManagement() {
           </div>
 
           {loading ? (
-            <p className="text-slate-400 text-center py-8">Cargando...</p>
+            <div className="text-center py-12">
+              <RefreshCw className="h-8 w-8 text-[#00e0ff] animate-spin mx-auto mb-4" />
+              <p className="text-slate-400">Cargando billeteras...</p>
+            </div>
+          ) : drivers.length === 0 ? (
+            <div className="text-center py-12">
+              <Wallet className="h-12 w-12 text-slate-600 mx-auto mb-4" />
+              <p className="text-slate-400">No hay conductores registrados</p>
+            </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full" data-testid="wallets-table">
                 <thead>
                   <tr className="border-b border-white/10">
                     <th className="text-left py-3 px-4 text-slate-400 font-semibold">Conductor</th>
-                    <th className="text-left py-3 px-4 text-slate-400 font-semibold">Placa</th>
+                    <th className="text-left py-3 px-4 text-slate-400 font-semibold">
+                      Placa
+                      <span className="text-xs text-[#00e0ff] ml-1">(clic para editar)</span>
+                    </th>
                     <th className="text-left py-3 px-4 text-slate-400 font-semibold">Vehículo</th>
                     <th className="text-left py-3 px-4 text-slate-400 font-semibold">Teléfono</th>
                     <th className="text-left py-3 px-4 text-slate-400 font-semibold">Saldo</th>
@@ -116,7 +184,7 @@ export default function WalletManagement() {
                   {drivers.map((driver) => (
                     <tr 
                       key={driver.driver_id} 
-                      className={`border-b border-white/5 hover:bg-white/5 ${driver.needs_recharge ? 'bg-red-500/5' : ''}`}
+                      className={`border-b border-white/5 hover:bg-white/5 transition-colors ${driver.needs_recharge ? 'bg-red-500/5' : ''}`}
                       data-testid={`driver-row-${driver.driver_id}`}
                     >
                       <td className="py-4 px-4">
@@ -126,9 +194,14 @@ export default function WalletManagement() {
                         </div>
                       </td>
                       <td className="py-4 px-4">
-                        <span className="font-mono text-[#00e0ff] font-semibold">
+                        <button
+                          onClick={() => openRechargeDialog(driver, true)}
+                          className="font-mono text-[#00e0ff] font-bold text-lg hover:bg-[#00e0ff]/20 px-3 py-1 rounded-lg transition-all cursor-pointer border border-transparent hover:border-[#00e0ff]/50"
+                          data-testid={`plate-button-${driver.driver_id}`}
+                          title="Clic para editar saldo"
+                        >
                           {driver.vehicle_plate}
-                        </span>
+                        </button>
                       </td>
                       <td className="py-4 px-4 text-slate-400">
                         {driver.vehicle_brand} {driver.vehicle_model}
@@ -157,7 +230,7 @@ export default function WalletManagement() {
                       </td>
                       <td className="py-4 px-4">
                         <Button
-                          onClick={() => openRechargeDialog(driver)}
+                          onClick={() => openRechargeDialog(driver, false)}
                           className="bg-[#00e0ff] text-black hover:bg-[#33eaff] font-bold"
                           size="sm"
                           data-testid={`recharge-button-${driver.driver_id}`}
@@ -175,60 +248,135 @@ export default function WalletManagement() {
         </div>
       </div>
 
-      {/* Dialog de Recarga */}
+      {/* Dialog de Recarga / Edición de Saldo */}
       <Dialog open={showRechargeDialog} onOpenChange={setShowRechargeDialog}>
-        <DialogContent className="bg-[#111827] border-white/10 text-white">
+        <DialogContent className="bg-[#111827] border-white/10 text-white max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold">Recargar Billetera</DialogTitle>
+            <DialogTitle className="text-2xl font-bold flex items-center gap-2">
+              {editMode ? <Edit className="h-6 w-6 text-[#00e0ff]" /> : <DollarSign className="h-6 w-6 text-[#00e0ff]" />}
+              {editMode ? 'Editar Saldo' : 'Recargar Billetera'}
+            </DialogTitle>
           </DialogHeader>
 
           {selectedDriver && (
             <div className="space-y-4 mt-4">
+              {/* Info del conductor */}
               <div className="bg-[#0a1120] p-4 rounded-lg border border-white/10">
-                <p className="text-sm text-slate-400">Conductor</p>
-                <p className="text-lg font-bold text-white">{selectedDriver.full_name}</p>
-                <p className="text-sm text-slate-400 mt-1">
-                  Placa: <span className="font-mono text-[#00e0ff]">{selectedDriver.vehicle_plate}</span>
-                </p>
-                <p className="text-sm text-slate-400">
-                  Saldo actual: <span className="font-bold text-yellow-400">{formatCurrency(selectedDriver.wallet_balance)}</span>
-                </p>
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-sm text-slate-400">Conductor</p>
+                    <p className="text-lg font-bold text-white">{selectedDriver.full_name}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-slate-400">Placa</p>
+                    <p className="font-mono text-[#00e0ff] font-bold text-xl">{selectedDriver.vehicle_plate}</p>
+                  </div>
+                </div>
+                <div className="mt-3 pt-3 border-t border-white/10">
+                  <p className="text-sm text-slate-400">Saldo actual</p>
+                  <p className={`text-2xl font-bold ${selectedDriver.wallet_balance < 1000 ? 'text-red-400' : 'text-green-400'}`}>
+                    {formatCurrency(selectedDriver.wallet_balance)}
+                  </p>
+                </div>
               </div>
 
-              <div>
-                <Label className="text-slate-300 mb-2 block">Monto a Recargar (COP)</Label>
-                <Input
-                  type="number"
-                  placeholder="10000"
-                  value={rechargeData.amount}
-                  onChange={(e) => setRechargeData({ ...rechargeData, amount: e.target.value })}
-                  className="bg-black/50 border-white/10 text-white h-12 text-lg"
-                  data-testid="recharge-amount-input"
-                />
-                <p className="text-xs text-slate-500 mt-1">
-                  Nuevo saldo: {formatCurrency(selectedDriver.wallet_balance + parseFloat(rechargeData.amount || 0))}
-                </p>
+              {/* Tabs para cambiar entre modos */}
+              <div className="flex gap-2 p-1 bg-black/30 rounded-lg">
+                <button
+                  onClick={() => setEditMode(false)}
+                  className={`flex-1 py-2 px-4 rounded-md text-sm font-semibold transition-all ${
+                    !editMode ? 'bg-[#00e0ff] text-black' : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  Añadir Monto
+                </button>
+                <button
+                  onClick={() => setEditMode(true)}
+                  className={`flex-1 py-2 px-4 rounded-md text-sm font-semibold transition-all ${
+                    editMode ? 'bg-[#00e0ff] text-black' : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  Establecer Saldo
+                </button>
               </div>
 
-              <div>
-                <Label className="text-slate-300 mb-2 block">Notas (Opcional)</Label>
-                <Textarea
-                  placeholder="Recarga vía Nequi confirmada..."
-                  value={rechargeData.notes}
-                  onChange={(e) => setRechargeData({ ...rechargeData, notes: e.target.value })}
-                  className="bg-black/50 border-white/10 text-white"
-                  data-testid="recharge-notes-input"
-                />
-              </div>
+              {editMode ? (
+                /* Modo edición directa del saldo */
+                <div>
+                  <Label className="text-slate-300 mb-2 block">Nuevo Saldo (COP)</Label>
+                  <Input
+                    type="number"
+                    placeholder="0"
+                    value={newBalance}
+                    onChange={(e) => setNewBalance(e.target.value)}
+                    className="bg-black/50 border-white/10 text-white h-14 text-2xl font-bold text-center"
+                    data-testid="new-balance-input"
+                  />
+                  <p className="text-xs text-slate-500 mt-2 text-center">
+                    {parseFloat(newBalance || 0) > selectedDriver.wallet_balance ? (
+                      <span className="text-green-400">
+                        +{formatCurrency(parseFloat(newBalance || 0) - selectedDriver.wallet_balance)}
+                      </span>
+                    ) : parseFloat(newBalance || 0) < selectedDriver.wallet_balance ? (
+                      <span className="text-red-400">
+                        {formatCurrency(parseFloat(newBalance || 0) - selectedDriver.wallet_balance)}
+                      </span>
+                    ) : (
+                      <span>Sin cambios</span>
+                    )}
+                  </p>
+                </div>
+              ) : (
+                /* Modo recarga normal */
+                <>
+                  <div>
+                    <Label className="text-slate-300 mb-2 block">Monto a Recargar (COP)</Label>
+                    <Input
+                      type="number"
+                      placeholder="10000"
+                      value={rechargeData.amount}
+                      onChange={(e) => setRechargeData({ ...rechargeData, amount: e.target.value })}
+                      className="bg-black/50 border-white/10 text-white h-12 text-lg"
+                      data-testid="recharge-amount-input"
+                    />
+                    <p className="text-xs text-slate-500 mt-1">
+                      Nuevo saldo: <span className="text-green-400 font-bold">
+                        {formatCurrency(selectedDriver.wallet_balance + parseFloat(rechargeData.amount || 0))}
+                      </span>
+                    </p>
+                  </div>
 
-              <div className="flex gap-3">
+                  <div>
+                    <Label className="text-slate-300 mb-2 block">Notas (Opcional)</Label>
+                    <Textarea
+                      placeholder="Ej: Pago recibido por Nequi"
+                      value={rechargeData.notes}
+                      onChange={(e) => setRechargeData({ ...rechargeData, notes: e.target.value })}
+                      className="bg-black/50 border-white/10 text-white"
+                      data-testid="recharge-notes-input"
+                    />
+                  </div>
+                </>
+              )}
+
+              {/* Botones de acción */}
+              <div className="flex gap-3 pt-2">
                 <Button
-                  onClick={handleRecharge}
+                  onClick={editMode ? handleSetBalance : handleRecharge}
                   disabled={recharging}
                   className="flex-1 bg-[#00e0ff] text-black hover:bg-[#33eaff] font-bold uppercase tracking-wider h-12"
                   data-testid="confirm-recharge-button"
                 >
-                  {recharging ? 'Procesando...' : 'Confirmar Recarga'}
+                  {recharging ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      Procesando...
+                    </>
+                  ) : editMode ? (
+                    'Guardar Saldo'
+                  ) : (
+                    'Confirmar Recarga'
+                  )}
                 </Button>
                 <Button
                   onClick={() => setShowRechargeDialog(false)}

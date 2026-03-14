@@ -4,11 +4,12 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { DollarSign, Truck, TrendingUp, MapPin, Power, AlertTriangle, MessageCircle, FileWarning } from 'lucide-react';
+import { DollarSign, Truck, TrendingUp, MapPin, Power, AlertTriangle, MessageCircle, FileWarning, CreditCard, List } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { formatCurrency } from '@/utils/currency';
 import NotificationBell from '@/components/NotificationBell';
+import RechargeModal from '@/components/RechargeModal';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -24,6 +25,7 @@ export default function DriverDashboard() {
   const [wallet, setWallet] = useState({ balance: 0, needs_recharge: false });
   const [driverInfo, setDriverInfo] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showRechargeModal, setShowRechargeModal] = useState(false);
 
   const loadWallet = async () => {
     try {
@@ -213,11 +215,11 @@ export default function DriverDashboard() {
                   Necesitas recargar para poder activarte y ver servicios disponibles.
                 </p>
                 <Button
-                  onClick={() => openWhatsAppHelp('recarga de saldo - mi saldo es $0')}
-                  className="bg-green-500 text-white hover:bg-green-600 font-bold"
+                  onClick={() => setShowRechargeModal(true)}
+                  className="bg-[#7200c4] text-white hover:bg-[#8e2bd9] font-bold"
                 >
-                  <MessageCircle className="h-5 w-5 mr-2" />
-                  Contactar para Recargar
+                  <CreditCard className="h-5 w-5 mr-2" />
+                  Recargar Saldo
                 </Button>
               </div>
             </div>
@@ -256,25 +258,35 @@ export default function DriverDashboard() {
             <h1 className="text-4xl font-bold text-white mb-2" data-testid="dashboard-title">Panel de Conductor</h1>
             <p className="text-slate-400">Gestiona tus servicios y ganancias</p>
           </div>
-          <Button
-            onClick={() => {
-              if (!canAccessServices) {
-                toast.error('Necesitas saldo para ver servicios disponibles');
-                return;
-              }
-              navigate('/driver/available');
-            }}
-            className={`font-bold uppercase tracking-wider ${canAccessServices ? 'bg-[#00e0ff] text-black hover:bg-[#33eaff]' : 'bg-slate-600 text-slate-400 cursor-not-allowed'}`}
-            disabled={!canAccessServices}
-            data-testid="view-available-button"
-          >
-            <MapPin className="mr-2 h-5 w-5" />
-            Ver Servicios Disponibles
-          </Button>
+          <div className="flex gap-3">
+            <Button
+              onClick={() => navigate('/driver/my-services')}
+              className="bg-[#7200c4] text-white hover:bg-[#8e2bd9] font-bold uppercase tracking-wider"
+              data-testid="my-services-button"
+            >
+              <List className="mr-2 h-5 w-5" />
+              Mis Servicios
+            </Button>
+            <Button
+              onClick={() => {
+                if (!canAccessServices) {
+                  toast.error('Necesitas saldo para ver servicios disponibles');
+                  return;
+                }
+                navigate('/driver/available');
+              }}
+              className={`font-bold uppercase tracking-wider ${canAccessServices ? 'bg-[#00e0ff] text-black hover:bg-[#33eaff]' : 'bg-slate-600 text-slate-400 cursor-not-allowed'}`}
+              disabled={!canAccessServices}
+              data-testid="view-available-button"
+            >
+              <MapPin className="mr-2 h-5 w-5" />
+              Ver Disponibles
+            </Button>
+          </div>
         </div>
 
-        {/* Saldo de Billetera */}
-        {wallet.needs_recharge && wallet.balance > 0 && wallet.nequi_recharge_info && (
+        {/* Saldo de Billetera con botón de recarga */}
+        {wallet.needs_recharge && wallet.balance > 0 && (
           <div className="glass-card p-6 rounded-xl mb-8 border-2 border-yellow-500/50 bg-yellow-500/5">
             <div className="flex items-start gap-4">
               <DollarSign className="h-8 w-8 text-yellow-400" />
@@ -282,13 +294,15 @@ export default function DriverDashboard() {
                 <h3 className="text-xl font-bold text-yellow-400 mb-2">⚠️ Saldo Bajo</h3>
                 <p className="text-slate-300 mb-3">
                   Tu saldo es <span className="font-bold text-yellow-400">{formatCurrency(wallet.balance)}</span>. 
-                  Recarga pronto.
+                  Recarga pronto para no quedarte sin saldo.
                 </p>
-                <div className="bg-black/30 p-4 rounded-lg border border-yellow-500/30">
-                  <p className="text-white font-bold mb-2">📱 Recarga por Nequi:</p>
-                  <p className="text-slate-300">Número: <span className="font-mono text-[#00e0ff]">{wallet.nequi_recharge_info.phone}</span></p>
-                  <p className="text-slate-300">Mensaje: <span className="font-mono text-[#00e0ff]">{wallet.nequi_recharge_info.message}</span></p>
-                </div>
+                <Button
+                  onClick={() => setShowRechargeModal(true)}
+                  className="bg-[#7200c4] text-white hover:bg-[#8e2bd9] font-bold"
+                >
+                  <CreditCard className="h-5 w-5 mr-2" />
+                  Recargar Saldo
+                </Button>
               </div>
             </div>
           </div>
@@ -384,17 +398,33 @@ export default function DriverDashboard() {
         </div>
 
         {/* Botón de Ayuda flotante */}
-        <div className="fixed bottom-6 right-6">
+        <div className="fixed bottom-6 right-6 flex flex-col gap-3">
+          <Button
+            onClick={() => setShowRechargeModal(true)}
+            className="bg-[#7200c4] text-white hover:bg-[#8e2bd9] shadow-lg rounded-full h-12 px-4"
+            data-testid="floating-recharge-button"
+          >
+            <CreditCard className="h-5 w-5 mr-2" />
+            Recargar
+          </Button>
           <Button
             onClick={() => openWhatsAppHelp()}
-            className="bg-green-500 text-white hover:bg-green-600 shadow-lg rounded-full h-14 px-6"
+            className="bg-green-500 text-white hover:bg-green-600 shadow-lg rounded-full h-12 px-4"
             data-testid="floating-help-button"
           >
-            <MessageCircle className="h-6 w-6 mr-2" />
+            <MessageCircle className="h-5 w-5 mr-2" />
             Ayuda
           </Button>
         </div>
       </div>
+
+      {/* Modal de Recarga */}
+      <RechargeModal
+        isOpen={showRechargeModal}
+        onClose={() => setShowRechargeModal(false)}
+        balance={wallet.balance}
+        vehiclePlate={driverInfo?.vehicle_plate}
+      />
     </div>
   );
 }

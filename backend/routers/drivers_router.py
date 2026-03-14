@@ -27,29 +27,17 @@ async def register_driver(data: DriverRegister, payload: dict = Depends(verify_t
     driver_dict.update({
         "id": str(uuid.uuid4()),
         "user_id": payload['user_id'],
-        "verified": False,
+        "verified": False,  # Pendiente de aprobación por admin
         "available": False,
-        "wallet_balance": INITIAL_DRIVER_BALANCE,
+        "wallet_balance": 0,  # Empieza con 0 hasta ser aprobado
         "created_at": datetime.now(timezone.utc).isoformat()
     })
     
     await db.drivers.insert_one(driver_dict)
     
-    # Crear transacción de bono inicial
-    transaction = {
-        "id": str(uuid.uuid4()),
-        "driver_id": payload['user_id'],
-        "amount": INITIAL_DRIVER_BALANCE,
-        "transaction_type": "bonus",
-        "description": "Bono de bienvenida GruaApp",
-        "balance_after": INITIAL_DRIVER_BALANCE,
-        "created_at": datetime.now(timezone.utc).isoformat()
-    }
-    await db.wallet_transactions.insert_one(transaction)
-    
     return {
-        "message": f"Información de conductor registrada. Has recibido ${INITIAL_DRIVER_BALANCE:,.0f} COP de bono de bienvenida.",
-        "wallet_balance": INITIAL_DRIVER_BALANCE
+        "message": "¡Registro enviado! Tu cuenta está PENDIENTE DE APROBACIÓN. Un administrador revisará tus documentos y te notificaremos cuando estés aprobado.",
+        "status": "pending_approval"
     }
 
 @router.post("/availability", response_model=dict)

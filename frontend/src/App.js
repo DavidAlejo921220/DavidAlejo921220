@@ -14,10 +14,12 @@ import MyServices from './pages/client/MyServicesWithTracking';
 import DriverDashboard from './pages/driver/Dashboard';
 import AvailableServices from './pages/driver/AvailableServices';
 import DriverServices from './pages/driver/MyServices';
+import DriverRegistration from './pages/driver/Registration';
 import AdminDashboard from './pages/admin/Dashboard';
 import UsersManagement from './pages/admin/Users';
 import CommissionConfig from './pages/admin/Commission';
 import WalletManagement from './pages/admin/WalletManagement';
+import DriversValidation from './pages/admin/DriversValidation';
 import Chat from './pages/Chat';
 
 function ProtectedRoute({ children, allowedRoles }) {
@@ -136,6 +138,14 @@ function App() {
                 element={
                   <ProtectedRoute allowedRoles={['admin']}>
                     <WalletManagement />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/drivers-validation"
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <DriversValidation />
                   </ProtectedRoute>
                 }
               />

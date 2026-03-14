@@ -26,7 +26,9 @@ export default function DriverRegistration() {
     insurance_info: '',
     driver_photo_url: '',
     vehicle_registration_photo_url: '',
-    vehicle_photo_url: ''
+    vehicle_photo_url: '',
+    cedula_photo_url: '',           // NUEVO: Cédula del propietario
+    insurance_photo_url: ''         // NUEVO: Seguro de Responsabilidad Civil
   });
 
   const handlePhotoUpload = async (e, fieldName) => {
@@ -80,11 +82,22 @@ export default function DriverRegistration() {
       return;
     }
 
+    if (!formData.cedula_photo_url) {
+      toast.error('La foto de la cédula del propietario es OBLIGATORIA');
+      return;
+    }
+
+    if (!formData.insurance_photo_url) {
+      toast.error('La foto del seguro de responsabilidad civil es OBLIGATORIA');
+      return;
+    }
+
     setLoading(true);
 
     try {
-      await axios.post(`${API}/drivers/register`, formData);
-      toast.success('¡Registro completado! Ya puedes empezar a recibir servicios.');
+      const response = await axios.post(`${API}/drivers/register`, formData);
+      toast.success(response.data.message || '¡Registro enviado!');
+      toast.info('Tu cuenta está pendiente de aprobación. Te notificaremos cuando seas aprobado.', { duration: 8000 });
       navigate('/driver/dashboard');
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Error al registrar');
@@ -311,6 +324,92 @@ export default function DriverRegistration() {
                 )}
               </div>
 
+              {/* Cédula del Propietario - OBLIGATORIA */}
+              <div className="p-4 border border-blue-500/30 rounded-lg bg-blue-500/5">
+                <Label className="text-white mb-2 block flex items-center gap-2 text-lg font-bold">
+                  Cédula del Propietario <span className="text-red-400">*</span>
+                  {!formData.cedula_photo_url && (
+                    <AlertCircle className="h-5 w-5 text-red-400 animate-pulse" />
+                  )}
+                </Label>
+                <p className="text-slate-400 text-sm mb-3">
+                  Foto clara de la cédula del propietario del vehículo (ambas caras)
+                </p>
+                <div className="flex items-center gap-4">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handlePhotoUpload(e, 'cedula_photo_url')}
+                    className="hidden"
+                    id="cedula-photo"
+                    data-testid="cedula-photo-input"
+                  />
+                  <label
+                    htmlFor="cedula-photo"
+                    className={`flex items-center gap-2 px-6 py-3 rounded-lg cursor-pointer transition-all ${
+                      formData.cedula_photo_url 
+                        ? 'bg-green-500/20 border border-green-500/50' 
+                        : 'bg-blue-500/10 border border-blue-500/50 hover:bg-blue-500/20'
+                    }`}
+                  >
+                    {formData.cedula_photo_url ? (
+                      <CheckCircle className="h-5 w-5 text-green-400" />
+                    ) : (
+                      <Upload className="h-5 w-5 text-blue-400" />
+                    )}
+                    <span className="text-white font-semibold">
+                      {formData.cedula_photo_url ? 'Cédula Cargada ✓' : 'Subir Cédula'}
+                    </span>
+                  </label>
+                </div>
+                {formData.cedula_photo_url && (
+                  <img src={formData.cedula_photo_url} alt="Cédula" className="mt-4 h-32 w-auto object-contain rounded-lg border border-white/10" />
+                )}
+              </div>
+
+              {/* Seguro de Responsabilidad Civil - OBLIGATORIO */}
+              <div className="p-4 border border-orange-500/30 rounded-lg bg-orange-500/5">
+                <Label className="text-white mb-2 block flex items-center gap-2 text-lg font-bold">
+                  Seguro de Responsabilidad Civil Extracontractual (RCE) <span className="text-red-400">*</span>
+                  {!formData.insurance_photo_url && (
+                    <AlertCircle className="h-5 w-5 text-red-400 animate-pulse" />
+                  )}
+                </Label>
+                <p className="text-slate-400 text-sm mb-3">
+                  Este seguro cubre daños a terceros, accidentes durante la operación y daños materiales o personales causados durante el servicio
+                </p>
+                <div className="flex items-center gap-4">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handlePhotoUpload(e, 'insurance_photo_url')}
+                    className="hidden"
+                    id="insurance-photo"
+                    data-testid="insurance-photo-input"
+                  />
+                  <label
+                    htmlFor="insurance-photo"
+                    className={`flex items-center gap-2 px-6 py-3 rounded-lg cursor-pointer transition-all ${
+                      formData.insurance_photo_url 
+                        ? 'bg-green-500/20 border border-green-500/50' 
+                        : 'bg-orange-500/10 border border-orange-500/50 hover:bg-orange-500/20'
+                    }`}
+                  >
+                    {formData.insurance_photo_url ? (
+                      <CheckCircle className="h-5 w-5 text-green-400" />
+                    ) : (
+                      <Upload className="h-5 w-5 text-orange-400" />
+                    )}
+                    <span className="text-white font-semibold">
+                      {formData.insurance_photo_url ? 'Seguro Cargado ✓' : 'Subir Póliza de Seguro RCE'}
+                    </span>
+                  </label>
+                </div>
+                {formData.insurance_photo_url && (
+                  <img src={formData.insurance_photo_url} alt="Seguro" className="mt-4 h-32 w-auto object-contain rounded-lg border border-white/10" />
+                )}
+              </div>
+
               {/* Foto del Conductor - Opcional */}
               <div className="p-4 border border-white/10 rounded-lg">
                 <Label className="text-slate-300 mb-2 block flex items-center gap-2">
@@ -345,10 +444,10 @@ export default function DriverRegistration() {
           <Button
             type="submit"
             className="w-full bg-[#00e0ff] text-black hover:bg-[#33eaff] font-bold uppercase tracking-wider h-14 text-lg"
-            disabled={loading || !formData.vehicle_plate || !formData.vehicle_photo_url || !formData.vehicle_registration_photo_url}
+            disabled={loading || !formData.vehicle_plate || !formData.vehicle_photo_url || !formData.vehicle_registration_photo_url || !formData.cedula_photo_url || !formData.insurance_photo_url}
             data-testid="submit-registration"
           >
-            {loading ? 'Registrando...' : 'Completar Registro'}
+            {loading ? 'Enviando Registro...' : 'Enviar Registro para Aprobación'}
           </Button>
 
           {/* Botón de Ayuda */}

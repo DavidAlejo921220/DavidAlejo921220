@@ -165,3 +165,101 @@ async def admin_get_all_wallets(payload: dict = Depends(verify_token)):
     result.sort(key=lambda x: x['wallet_balance'])
     
     return result
+
+
+@router.get("/drivers/pending", response_model=list)
+async def get_pending_drivers(payload: dict = Depends(verify_token)):
+    """Admin obtiene lista de conductores pendientes de aprobación"""
+    if payload['role'] != 'admin':
+        raise HTTPException(status_code=403, detail="Solo administradores")
+    
+    # Buscar conductores con verified=False
+    drivers = await db.drivers.find({"verified": False}, {"_id": 0}).to_list(1000)
+    
+    result = []
+    for driver in drivers:
+        user = await db.users.find_one({"id": driver['user_id']}, {"_id": 0, "password": 0})
+        if user:
+            result.append({
+                "driver_id": driver['user_id'],
+                "full_name": user['full_name'],
+                "email": user['email'],
+                "phone": user['phone'],
+                "vehicle_type": driver.get('vehicle_type'),
+                "vehicle_brand": driver.get('vehicle_brand'),
+                "vehicle_model": driver.get('vehicle_model'),
+                "vehicle_plate": driver.get('vehicle_plate'),
+                "license_number": driver.get('license_number'),
+                "insurance_info": driver.get('insurance_info'),
+                "driver_photo_url": driver.get('driver_photo_url'),
+                "vehicle_photo_url": driver.get('vehicle_photo_url'),
+                "vehicle_registration_photo_url": driver.get('vehicle_registration_photo_url'),
+                "cedula_photo_url": driver.get('cedula_photo_url'),
+                "insurance_photo_url": driver.get('insurance_photo_url'),
+                "created_at": driver.get('created_at'),
+                "status": "pending"
+            })
+    
+    return result
+
+@router.get("/drivers/approved", response_model=list)
+async def get_approved_drivers(payload: dict = Depends(verify_token)):
+    """Admin obtiene lista de conductores aprobados"""
+    if payload['role'] != 'admin':
+        raise HTTPException(status_code=403, detail="Solo administradores")
+    
+    drivers = await db.drivers.find({"verified": True}, {"_id": 0}).to_list(1000)
+    
+    result = []
+    for driver in drivers:
+        user = await db.users.find_one({"id": driver['user_id']}, {"_id": 0, "password": 0})
+        if user:
+            result.append({
+                "driver_id": driver['user_id'],
+                "full_name": user['full_name'],
+                "email": user['email'],
+                "phone": user['phone'],
+                "vehicle_type": driver.get('vehicle_type'),
+                "vehicle_brand": driver.get('vehicle_brand'),
+                "vehicle_model": driver.get('vehicle_model'),
+                "vehicle_plate": driver.get('vehicle_plate'),
+                "wallet_balance": driver.get('wallet_balance', 0),
+                "vehicle_photo_url": driver.get('vehicle_photo_url'),
+                "status": "approved"
+            })
+    
+    return result
+
+@router.post("/drivers/{driver_id}/approve", response_model=dict)
+async def approve_driver(driver_id: str, payload: dict = Depends(verify_token)):
+    """Admin aprueba un conductor"""
+    if payload['role'] != 'admin':
+        raise HTTPException(status_code=403, detail="Solo administradores")
+    
+    driver = await db.drivers.find_one({"user_id": driver_id}, {"_id": 0})
+    if not driver:
+        raise HTTPException(status_code=404, detail="Conductor no encontrado")
+    
+    await db.drivers.update_one(
+        {"user_id": driver_id},
+        {"$set": {"verified": True}}
+    )
+    
+    user = await db.users.find_one({"id": driver_id}, {"_id": 0})
+    
+    return {"message": f"Conductor {user.get('full_name')} aprobado exitosamente"}
+
+@router.post("/drivers/{driver_id}/reject", response_model=dict)
+async def reject_driver(driver_id: str, payload: dict = Depends(verify_token)):
+    """Admin rechaza un conductor"""
+    if payload['role'] != 'admin':
+        raise HTTPException(status_code=403, detail="Solo administradores")
+    
+    driver = await db.drivers.find_one({"user_id": driver_id}, {"_id": 0})
+    if not driver:
+        raise HTTPException(status_code=404, detail="Conductor no encontrado")
+    
+    # Eliminar registro de conductor
+    await db.drivers.delete_one({"user_id": driver_id})
+    
+    return {"message": "Solicitud de conductor rechazada"}

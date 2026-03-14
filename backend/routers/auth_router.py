@@ -99,3 +99,18 @@ async def resend_otp(payload: dict = Depends(verify_token)):
     
     await send_otp_email(user['email'], otp_code)
     return {"message": "Código OTP reenviado"}
+
+
+@router.get("/users/{user_id}", response_model=dict)
+async def get_user_info(user_id: str, payload: dict = Depends(verify_token)):
+    """Obtiene información básica de un usuario (para mostrar datos del cliente al conductor)"""
+    user = await db.users.find_one({"id": user_id}, {"_id": 0, "password": 0, "otp_code": 0, "otp_expiry": 0})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    
+    return {
+        "id": user.get("id"),
+        "full_name": user.get("full_name"),
+        "phone": user.get("phone"),
+        "reputation_score": user.get("reputation_score", 5.0)
+    }

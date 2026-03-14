@@ -6,9 +6,10 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, Send, MapPin } from 'lucide-react';
+import { ArrowLeft, Send, MapPin, Navigation } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
+import { formatCurrency } from '@/utils/currency';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -48,8 +49,8 @@ export default function AvailableServices() {
   };
 
   const handleSendOffer = async () => {
-    if (!offerData.price) {
-      toast.error('Ingresa un precio');
+    if (!offerData.price || parseFloat(offerData.price) <= 0) {
+      toast.error('Ingresa un precio válido en COP');
       return;
     }
 
@@ -61,11 +62,11 @@ export default function AvailableServices() {
         message: offerData.message
       });
       
-      toast.success('Oferta enviada');
+      toast.success('✅ Oferta enviada exitosamente');
       setShowOfferDialog(false);
       setOfferData({ price: '', message: '' });
     } catch (error) {
-      toast.error('Error al enviar oferta');
+      toast.error(error.response?.data?.detail || 'Error al enviar oferta');
     } finally {
       setLoading(false);
     }
@@ -84,6 +85,7 @@ export default function AvailableServices() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <h1 className="text-2xl font-bold text-white">Servicios Disponibles</h1>
+          <span className="text-slate-400 text-sm">({services.length} disponibles)</span>
         </div>
       </nav>
 
@@ -99,7 +101,7 @@ export default function AvailableServices() {
             {services.map((service) => (
               <div
                 key={service.id}
-                className="glass-card p-6 rounded-xl hover:border-[#00e0ff]/30 transition-all"
+                className="glass-card p-6 rounded-xl hover:border-[#00e0ff]/30 transition-all border border-white/10"
                 data-testid={`service-card-${service.id}`}
               >
                 <div className="mb-4">
@@ -109,27 +111,32 @@ export default function AvailableServices() {
                   <p className="text-slate-400 text-sm">
                     {service.vehicle_type} - {service.vehicle_condition}
                   </p>
+                  {service.distance_to_driver && (
+                    <p className="text-[#00e0ff] text-sm mt-1">
+                      📍 A {service.distance_to_driver} km de ti
+                    </p>
+                  )}
                 </div>
 
-                <div className="space-y-2 mb-4 text-sm">
-                  <div className="flex items-start gap-2">
-                    <MapPin className="h-4 w-4 text-[#00e0ff] mt-0.5 flex-shrink-0" />
+                <div className="space-y-3 mb-4 text-sm">
+                  <div className="flex items-start gap-2 p-2 bg-green-500/10 rounded-lg border border-green-500/20">
+                    <MapPin className="h-4 w-4 text-green-400 mt-0.5 flex-shrink-0" />
                     <div>
-                      <p className="text-slate-400">Recogida:</p>
+                      <p className="text-green-400 font-semibold text-xs">RECOGIDA</p>
                       <p className="text-white">{service.pickup_address || 'Ver en mapa'}</p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-2">
-                    <MapPin className="h-4 w-4 text-[#7200c4] mt-0.5 flex-shrink-0" />
+                  <div className="flex items-start gap-2 p-2 bg-red-500/10 rounded-lg border border-red-500/20">
+                    <Navigation className="h-4 w-4 text-red-400 mt-0.5 flex-shrink-0" />
                     <div>
-                      <p className="text-slate-400">Destino:</p>
+                      <p className="text-red-400 font-semibold text-xs">DESTINO</p>
                       <p className="text-white">{service.destination_address || 'Ver en mapa'}</p>
                     </div>
                   </div>
                 </div>
 
                 {service.description && (
-                  <p className="text-slate-500 text-sm mb-4 line-clamp-2">{service.description}</p>
+                  <p className="text-slate-500 text-sm mb-4 line-clamp-2 italic">"{service.description}"</p>
                 )}
 
                 <Button
@@ -149,6 +156,7 @@ export default function AvailableServices() {
         )}
       </div>
 
+      {/* Dialog de Oferta - MONEDA EN COP */}
       <Dialog open={showOfferDialog} onOpenChange={setShowOfferDialog}>
         <DialogContent className="bg-[#111827] border-white/10 text-white">
           <DialogHeader>
@@ -159,22 +167,43 @@ export default function AvailableServices() {
           </DialogHeader>
           
           <div className="space-y-4 mt-4" data-testid="offer-form">
+            {/* Info del servicio */}
+            <div className="bg-black/30 p-3 rounded-lg space-y-2 text-sm">
+              <div className="flex items-start gap-2">
+                <MapPin className="h-4 w-4 text-green-400 mt-0.5" />
+                <span className="text-slate-300">{selectedService?.pickup_address}</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <Navigation className="h-4 w-4 text-red-400 mt-0.5" />
+                <span className="text-slate-300">{selectedService?.destination_address}</span>
+              </div>
+            </div>
+
             <div>
-              <Label className="text-slate-300 mb-2 block">Precio (USD)</Label>
-              <Input
-                type="number"
-                placeholder="150.00"
-                value={offerData.price}
-                onChange={(e) => setOfferData({ ...offerData, price: e.target.value })}
-                className="bg-black/50 border-white/10 text-white h-12"
-                data-testid="offer-price-input"
-              />
+              <Label className="text-slate-300 mb-2 block">Precio de tu Oferta (COP - Pesos Colombianos)</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-3 text-slate-500">$</span>
+                <Input
+                  type="number"
+                  placeholder="50000"
+                  value={offerData.price}
+                  onChange={(e) => setOfferData({ ...offerData, price: e.target.value })}
+                  className="bg-black/50 border-white/10 text-white h-12 pl-8 text-lg"
+                  data-testid="offer-price-input"
+                />
+                <span className="absolute right-3 top-3 text-slate-500">COP</span>
+              </div>
+              {offerData.price && (
+                <p className="text-[#00e0ff] text-sm mt-1">
+                  Tu oferta: {formatCurrency(parseFloat(offerData.price) || 0)}
+                </p>
+              )}
             </div>
             
             <div>
-              <Label className="text-slate-300 mb-2 block">Mensaje (Opcional)</Label>
+              <Label className="text-slate-300 mb-2 block">Mensaje al Cliente (Opcional)</Label>
               <Textarea
-                placeholder="Puedo llegar en 15 minutos..."
+                placeholder="Ej: Puedo llegar en 15 minutos, tengo grúa plataforma..."
                 value={offerData.message}
                 onChange={(e) => setOfferData({ ...offerData, message: e.target.value })}
                 className="bg-black/50 border-white/10 text-white"
@@ -184,11 +213,11 @@ export default function AvailableServices() {
             
             <Button
               onClick={handleSendOffer}
-              disabled={loading}
+              disabled={loading || !offerData.price}
               className="w-full bg-[#00e0ff] text-black hover:bg-[#33eaff] font-bold uppercase tracking-wider h-12"
               data-testid="submit-offer-button"
             >
-              {loading ? 'Enviando...' : 'Enviar Oferta'}
+              {loading ? 'Enviando...' : `Enviar Oferta de ${formatCurrency(parseFloat(offerData.price) || 0)}`}
             </Button>
           </div>
         </DialogContent>

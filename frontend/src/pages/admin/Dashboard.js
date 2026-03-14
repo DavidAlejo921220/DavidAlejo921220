@@ -7,6 +7,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import axios from 'axios';
 import { toast } from 'sonner';
 import NotificationBell from '@/components/NotificationBell';
+import { formatCurrency } from '@/utils/currency';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -76,6 +77,14 @@ export default function AdminDashboard() {
               data-testid="wallets-nav-button"
             >
               Billeteras
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => navigate('/admin/drivers-validation')}
+              className="text-yellow-400 hover:text-yellow-300"
+              data-testid="drivers-validation-nav-button"
+            >
+              Validar Conductores
             </Button>
             <NotificationBell />
             <span className="text-slate-300">Admin: {user?.full_name}</span>
@@ -150,9 +159,9 @@ export default function AdminDashboard() {
                   <DollarSign className="h-6 w-6 text-[#00e0ff]" />
                 </div>
                 <p className="text-5xl font-bold text-[#00e0ff]" data-testid="total-revenue">
-                  ${stats?.total_revenue?.toFixed(2) || '0.00'}
+                  {formatCurrency(stats?.total_revenue || 0)}
                 </p>
-                <p className="text-slate-400 mt-2">Comisión: ${stats?.total_commission?.toFixed(2) || '0.00'}</p>
+                <p className="text-slate-400 mt-2">Comisión: {formatCurrency(stats?.total_commission || 0)}</p>
               </div>
 
               <div className="glass-card p-6 rounded-xl">

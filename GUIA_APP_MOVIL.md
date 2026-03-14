@@ -178,7 +178,7 @@ export default function App() {
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_URL = 'https://tow-nexus.preview.emergentagent.com/api';
+const API_URL = 'https://tow-truck-bids.preview.emergentagent.com/api';
 
 const apiClient = axios.create({
   baseURL: API_URL,

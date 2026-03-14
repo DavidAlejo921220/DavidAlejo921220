@@ -68,6 +68,14 @@ export default function AdminDashboard() {
             >
               Comisiones
             </Button>
+            <Button
+              variant="ghost"
+              onClick={() => navigate('/admin/wallets')}
+              className="text-slate-400 hover:text-white"
+              data-testid="wallets-nav-button"
+            >
+              Billeteras
+            </Button>
             <span className="text-slate-300">Admin: {user?.full_name}</span>
             <Button variant="ghost" onClick={logout} className="text-slate-400 hover:text-white" data-testid="logout-button">
               Salir

@@ -8,7 +8,7 @@ Esta guía te ayudará a maximizar tus ganancias y ofrecer el mejor servicio.
 ## 1. Registro como Conductor
 
 ### Crear Cuenta de Conductor
-1. Visita **https://tow-nexus.preview.emergentagent.com/**
+1. Visita **https://tow-truck-bids.preview.emergentagent.com/**
 2. Haz clic en **"Registrarse"**
 3. Completa el formulario:
    - Selecciona tipo de cuenta: **Conductor (Tengo grúa)**

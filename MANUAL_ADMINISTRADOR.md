@@ -542,7 +542,7 @@ JWT_SECRET=tow-nexus-secret-key-2026-secure
 
 **Frontend (.env):**
 ```env
-REACT_APP_BACKEND_URL=https://tow-nexus.preview.emergentagent.com
+REACT_APP_BACKEND_URL=https://tow-truck-bids.preview.emergentagent.com
 ```
 
 ### Seguridad

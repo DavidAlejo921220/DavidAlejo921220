@@ -44,6 +44,20 @@ class DriverRegister(BaseModel):
     vehicle_registration_photo_url: str  # Tarjeta de propiedad (obligatoria)
     vehicle_photo_url: Optional[str] = None  # Foto de la grúa (opcional)
 
+class WalletTransaction(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    driver_id: str
+    amount: float
+    transaction_type: str  # "commission", "recharge", "bonus"
+    description: str
+    balance_after: float
+    created_at: str
+
+class WalletRecharge(BaseModel):
+    driver_id: str
+    amount: float
+    notes: Optional[str] = None
+
 class DriverAvailabilityUpdate(BaseModel):
     available: bool
     current_location: Optional[Dict[str, float]] = None

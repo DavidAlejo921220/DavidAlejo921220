@@ -8,7 +8,7 @@ Esta guía te ayudará a solicitar servicios de grúa de manera rápida y segura
 ## 1. Registro e Inicio de Sesión
 
 ### Crear Cuenta
-1. Visita **https://tow-nexus.preview.emergentagent.com/**
+1. Visita **https://tow-truck-bids.preview.emergentagent.com/**
 2. Haz clic en **"Registrarse"**
 3. Completa el formulario:
    - Selecciona tipo de cuenta: **Cliente (Necesito grúa)**

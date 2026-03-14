@@ -19,8 +19,23 @@ export default function DriverDashboard() {
   const [stats, setStats] = useState({ total: 0, active: 0, completed: 0, earnings: 0 });
   const [available, setAvailable] = useState(false);
   const [locationInterval, setLocationInterval] = useState(null);
+  const [wallet, setWallet] = useState({ balance: 0, needs_recharge: false });
 
-  useEffect(() => {
+
+  const loadWallet = async () => {
+    try {
+      const response = await axios.get(`${API}/drivers/wallet`);
+      setWallet(response.data);
+      
+      if (response.data.low_balance_warning) {
+        toast.warning(`⚠️ Saldo bajo: ${formatCurrency(response.data.balance)}. Recarga pronto para seguir recibiendo servicios.`, {
+          duration: 10000
+        });
+      }
+    } catch (error) {
+      console.error('Error loading wallet:', error);
+    }
+  };
 
   const toggleAvailability = async (checked) => {
     setAvailable(checked);
@@ -77,7 +92,9 @@ export default function DriverDashboard() {
     }
   };
 
+  useEffect(() => {
     loadData();
+    loadWallet();
   }, []);
 
   const loadData = async () => {
@@ -161,7 +178,50 @@ export default function DriverDashboard() {
           </Button>
         </div>
 
-        <div className="grid md:grid-cols-4 gap-6 mb-8">
+
+        {/* Saldo de Billetera */}
+        {wallet.needs_recharge && wallet.nequi_recharge_info && (
+          <div className="glass-card p-6 rounded-xl mb-8 border-2 border-yellow-500/50 bg-yellow-500/5">
+            <div className="flex items-start gap-4">
+              <div className="bg-yellow-500/20 p-3 rounded-lg">
+                <DollarSign className="h-8 w-8 text-yellow-400" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-xl font-bold text-yellow-400 mb-2">⚠️ Saldo Bajo - Recarga Requerida</h3>
+                <p className="text-slate-300 mb-3">
+                  Tu saldo actual es de <span className="font-bold text-yellow-400">{formatCurrency(wallet.balance)}</span>. 
+                  Recarga para seguir recibiendo servicios.
+                </p>
+                <div className="bg-black/30 p-4 rounded-lg border border-yellow-500/30">
+                  <p className="text-white font-bold mb-2">📱 Información para Recarga Nequi:</p>
+                  <p className="text-slate-300">Número: <span className="font-mono text-[#00e0ff]">{wallet.nequi_recharge_info.phone}</span></p>
+                  <p className="text-slate-300">Mensaje: <span className="font-mono text-[#00e0ff]">{wallet.nequi_recharge_info.message}</span></p>
+                  <p className="text-xs text-slate-500 mt-2">
+                    Después de recargar, contacta al administrador para activar tu saldo.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="grid md:grid-cols-5 gap-6 mb-8">
+          {/* Saldo Disponible */}
+          <div className={`glass-card p-6 rounded-xl border-2 ${wallet.balance < 1000 ? 'border-red-500/50' : 'border-green-500/30'}`} data-testid="stat-wallet">
+            <div className="flex items-center gap-4">
+              <div className={`p-3 rounded-lg ${wallet.balance < 1000 ? 'bg-red-500/10' : 'bg-green-500/10'}`}>
+                <DollarSign className={`h-6 w-6 ${wallet.balance < 1000 ? 'text-red-400' : 'text-green-400'}`} />
+              </div>
+              <div>
+                <p className="text-slate-400 text-sm">Saldo Disponible</p>
+                <p className="text-2xl font-bold text-white">{formatCurrency(wallet.balance)}</p>
+                {wallet.balance < 1000 && (
+                  <p className="text-xs text-red-400 mt-1">¡Recarga pronto!</p>
+                )}
+              </div>
+            </div>
+          </div>
+          
           <div className="glass-card p-6 rounded-xl" data-testid="stat-earnings">
             <div className="flex items-center gap-4">
               <div className="bg-green-500/10 p-3 rounded-lg">

@@ -17,6 +17,7 @@ import DriverServices from './pages/driver/MyServices';
 import AdminDashboard from './pages/admin/Dashboard';
 import UsersManagement from './pages/admin/Users';
 import CommissionConfig from './pages/admin/Commission';
+import WalletManagement from './pages/admin/WalletManagement';
 import Chat from './pages/Chat';
 
 function ProtectedRoute({ children, allowedRoles }) {
@@ -130,6 +131,15 @@ function App() {
                 }
               />
               
+              <Route
+                path="/admin/wallets"
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <WalletManagement />
+                  </ProtectedRoute>
+                }
+              />
+
               {/* Chat Route */}
               <Route
                 path="/chat/:serviceId"

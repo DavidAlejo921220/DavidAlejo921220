@@ -15,7 +15,7 @@ export default function Landing() {
           <div className="flex items-center gap-3">
             <img 
               src="https://customer-assets.emergentagent.com/job_tow-nexus/artifacts/ykgd2d1v_WhatsApp%20Image%202026-02-23%20at%207.40.40%20PM.jpeg" 
-              alt="TowNexus" 
+              alt="GruaApp" 
               className="h-12"
             />
           </div>
@@ -40,12 +40,12 @@ export default function Landing() {
 
         <div className="relative z-10 container mx-auto px-6 py-20 text-center">
           <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 tracking-tight">
-            Asistencia Vehicular
-            <span className="block text-[#00e0ff] mt-2">Del Futuro</span>
+            GruaApp
+            <span className="block text-[#00e0ff] mt-2">Tu Grúa en Minutos</span>
           </h1>
           <p className="text-xl text-slate-300 mb-12 max-w-2xl mx-auto leading-relaxed">
-            Conectamos conductores de grúas con usuarios que necesitan asistencia. 
-            Tú decides el precio, tú eliges la mejor oferta.
+            La forma más rápida de conseguir grúa en Colombia. 
+            Compara precios, elige la mejor oferta y ahorra dinero.
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
             <Button 
@@ -79,7 +79,7 @@ export default function Landing() {
             </div>
             <h3 className="text-2xl font-bold text-white mb-3">Marketplace en Tiempo Real</h3>
             <p className="text-slate-400 leading-relaxed">
-              Publica tu solicitud y recibe múltiples ofertas de conductores cercanos. 
+              Publica tu solicitud y recibe múltiples ofertas de conductores cercanos en Colombia. 
               Elige la que mejor se ajuste a tu presupuesto.
             </p>
           </div>
@@ -88,10 +88,10 @@ export default function Landing() {
             <div className="bg-[#7200c4]/10 w-16 h-16 rounded-lg flex items-center justify-center mb-4">
               <Shield className="h-8 w-8 text-[#7200c4]" />
             </div>
-            <h3 className="text-2xl font-bold text-white mb-3">Sistema Antifraude</h3>
+            <h3 className="text-2xl font-bold text-white mb-3">100% Seguro</h3>
             <p className="text-slate-400 leading-relaxed">
-              Verificación por OTP, validación de documentos y sistema de reputación bidireccional 
-              para tu seguridad.
+              Verificación de conductores, sistema de calificaciones y soporte 24/7 
+              para tu tranquilidad.
             </p>
           </div>
 
@@ -115,7 +115,7 @@ export default function Landing() {
             Comienza Ahora
           </h2>
           <p className="text-xl text-slate-300 mb-8 max-w-2xl mx-auto">
-            Únete a la plataforma de asistencia vehicular más innovadora.
+            Únete a GruaApp, la plataforma #1 de asistencia vehicular en Colombia.
           </p>
           <Button 
             size="lg"

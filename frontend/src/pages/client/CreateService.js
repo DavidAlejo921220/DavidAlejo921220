@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
-import { ArrowLeft, MapPin, Navigation } from 'lucide-react';
+import { ArrowLeft, MapPin, Navigation, Crosshair } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import L from 'leaflet';
@@ -21,6 +21,9 @@ L.Icon.Default.mergeOptions({
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
+
+// Coordenadas de Colombia (Bogotá como centro)
+const COLOMBIA_CENTER = { lat: 4.7110, lng: -74.0721 };
 
 function LocationMarker({ position, setPosition, type }) {
   useMapEvents({
@@ -38,6 +41,8 @@ export default function CreateService() {
   const [pickupLocation, setPickupLocation] = useState(null);
   const [destinationLocation, setDestinationLocation] = useState(null);
   const [currentStep, setCurrentStep] = useState('pickup');
+  const [mapCenter, setMapCenter] = useState(COLOMBIA_CENTER);
+  const [mapKey, setMapKey] = useState(0);
   const [formData, setFormData] = useState({
     vehicle_type: '',
     vehicle_brand: '',
@@ -49,20 +54,67 @@ export default function CreateService() {
   });
 
   useEffect(() => {
-    if (navigator.geolocation && !pickupLocation) {
+    getUserLocation();
+  }, []);
+
+  const getUserLocation = () => {
+    if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          setPickupLocation({
+          const userLocation = {
             lat: position.coords.latitude,
             lng: position.coords.longitude
-          });
+          };
+          setPickupLocation(userLocation);
+          setMapCenter(userLocation);
+          setMapKey(prev => prev + 1);
+          toast.success('Ubicación detectada');
         },
         (error) => {
-          setPickupLocation({ lat: 40.7128, lng: -74.0060 });
+          console.error('Error getting location:', error);
+          setPickupLocation(COLOMBIA_CENTER);
+          setMapCenter(COLOMBIA_CENTER);
+          setMapKey(prev => prev + 1);
+          toast.info('Usando ubicación por defecto (Bogotá, Colombia)');
         }
       );
+    } else {
+      setPickupLocation(COLOMBIA_CENTER);
+      setMapCenter(COLOMBIA_CENTER);
+      setMapKey(prev => prev + 1);
     }
-  }, []);
+  };
+
+  const handleLocateMe = () => {
+    if (navigator.geolocation) {
+      toast.loading('Obteniendo tu ubicación...');
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const userLocation = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          };
+          
+          if (currentStep === 'pickup') {
+            setPickupLocation(userLocation);
+          } else {
+            setDestinationLocation(userLocation);
+          }
+          
+          setMapCenter(userLocation);
+          setMapKey(prev => prev + 1);
+          toast.dismiss();
+          toast.success('¡Ubicación actualizada!');
+        },
+        (error) => {
+          toast.dismiss();
+          toast.error('No se pudo obtener tu ubicación. Verifica los permisos.');
+        }
+      );
+    } else {
+      toast.error('Tu navegador no soporta geolocalización');
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -89,8 +141,6 @@ export default function CreateService() {
       setLoading(false);
     }
   };
-
-  const defaultCenter = pickupLocation || { lat: 40.7128, lng: -74.0060 };
 
   return (
     <div className="min-h-screen bg-[#0a1120]">
@@ -233,6 +283,14 @@ export default function CreateService() {
                   <Navigation className="mr-2 h-4 w-4" />
                   Destino
                 </Button>
+                <Button
+                  onClick={handleLocateMe}
+                  className="bg-green-500 hover:bg-green-600 text-white font-bold"
+                  data-testid="locate-me-button"
+                >
+                  <Crosshair className="mr-2 h-4 w-4" />
+                  Ubicarme
+                </Button>
               </div>
               <p className="text-slate-400 text-sm">
                 Haz clic en el mapa para marcar la ubicación de {currentStep === 'pickup' ? 'recogida' : 'destino'}
@@ -241,12 +299,13 @@ export default function CreateService() {
 
             <div className="h-[500px] rounded-lg overflow-hidden border border-white/10" data-testid="service-map">
               <MapContainer
-                center={[defaultCenter.lat, defaultCenter.lng]}
+                key={mapKey}
+                center={[mapCenter.lat, mapCenter.lng]}
                 zoom={13}
                 style={{ height: '100%', width: '100%' }}
               >
                 <TileLayer
-                  url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                   attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                 />
                 {currentStep === 'pickup' ? (

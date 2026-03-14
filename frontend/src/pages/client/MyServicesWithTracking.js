@@ -36,12 +36,38 @@ export default function MyServices() {
             setDriverLocation(data.location);
           }
         });
+        
+        // Escuchar notificaciones de grúa cerca
+        socket.on('driver_nearby', (data) => {
+          if (data.service_id === selectedService.id) {
+            toast.success(data.message, {
+              duration: 10000,
+              action: {
+                label: 'Ver Mapa',
+                onClick: () => setShowMap(true)
+              }
+            });
+            
+            // Notificación del navegador si tiene permisos
+            if ('Notification' in window && Notification.permission === 'granted') {
+              new Notification('GruaApp - Grúa Cerca', {
+                body: data.message,
+                icon: 'https://customer-assets.emergentagent.com/job_tow-nexus/artifacts/ykgd2d1v_WhatsApp%20Image%202026-02-23%20at%207.40.40%20PM.jpeg',
+                badge: 'https://customer-assets.emergentagent.com/job_tow-nexus/artifacts/ykgd2d1v_WhatsApp%20Image%202026-02-23%20at%207.40.40%20PM.jpeg'
+              });
+            } else if ('Notification' in window && Notification.permission === 'default') {
+              // Solicitar permiso
+              Notification.requestPermission();
+            }
+          }
+        });
       }
     }
 
     return () => {
       if (socket) {
         socket.off('driver_location_update');
+        socket.off('driver_nearby');
       }
     };
   }, [selectedService, socket]);

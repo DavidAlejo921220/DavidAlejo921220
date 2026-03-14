@@ -2,9 +2,12 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { DollarSign, Truck, TrendingUp, MapPin } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { DollarSign, Truck, TrendingUp, MapPin, Power } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
+import { formatCurrency } from '@/utils/currency';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -14,8 +17,66 @@ export default function DriverDashboard() {
   const { user, logout } = useAuth();
   const [services, setServices] = useState([]);
   const [stats, setStats] = useState({ total: 0, active: 0, completed: 0, earnings: 0 });
+  const [available, setAvailable] = useState(false);
+  const [locationInterval, setLocationInterval] = useState(null);
 
   useEffect(() => {
+
+  const toggleAvailability = async (checked) => {
+    setAvailable(checked);
+    
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          try {
+            await axios.post(`${API}/drivers/availability`, {
+              available: checked,
+              current_location: {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude
+              }
+            });
+            
+            toast.success(checked ? '✅ Ahora estás disponible para recibir servicios' : '⏸️ Ahora estás no disponible');
+            
+            // Si está disponible, iniciar actualización automática de ubicación
+            if (checked) {
+              const interval = setInterval(() => {
+                navigator.geolocation.getCurrentPosition((pos) => {
+                  // Actualizar ubicación cada 15 segundos
+                  axios.post(`${API}/drivers/availability`, {
+                    available: true,
+                    current_location: {
+                      lat: pos.coords.latitude,
+                      lng: pos.coords.longitude
+                    }
+                  }).catch(err => console.error('Error updating location:', err));
+                });
+              }, 15000);
+              setLocationInterval(interval);
+            } else {
+              // Detener actualización de ubicación
+              if (locationInterval) {
+                clearInterval(locationInterval);
+                setLocationInterval(null);
+              }
+            }
+          } catch (error) {
+            toast.error('Error al actualizar disponibilidad');
+            setAvailable(!checked);
+          }
+        },
+        (error) => {
+          toast.error('No se pudo obtener tu ubicación. Verifica los permisos.');
+          setAvailable(false);
+        }
+      );
+    } else {
+      toast.error('Tu navegador no soporta geolocalización');
+      setAvailable(false);
+    }
+  };
+
     loadData();
   }, []);
 
@@ -61,6 +122,30 @@ export default function DriverDashboard() {
       </nav>
 
       <div className="container mx-auto px-6 py-8">
+        {/* Toggle de Disponibilidad */}
+        <div className="glass-card p-6 rounded-xl mb-8 border-2 border-[#00e0ff]/30">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Power className={`h-8 w-8 ${available ? 'text-green-400' : 'text-slate-500'}`} />
+              <div>
+                <Label htmlFor="availability-toggle" className="text-xl font-bold text-white cursor-pointer">
+                  Estado: {available ? 'Disponible' : 'No Disponible'}
+                </Label>
+                <p className="text-sm text-slate-400">
+                  {available ? 'Estás recibiendo solicitudes de servicio' : 'Activa para empezar a recibir servicios'}
+                </p>
+              </div>
+            </div>
+            <Switch
+              id="availability-toggle"
+              checked={available}
+              onCheckedChange={toggleAvailability}
+              className="scale-150"
+              data-testid="availability-switch"
+            />
+          </div>
+        </div>
+
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-4xl font-bold text-white mb-2" data-testid="dashboard-title">Panel de Conductor</h1>

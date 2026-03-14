@@ -15,6 +15,7 @@ from typing import Dict, Set
 
 from models import *
 from utils import send_otp_email, generate_otp, calculate_distance
+from cloudinary_helper import upload_driver_photos
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -143,13 +144,17 @@ async def register_driver(data: DriverRegister, payload: dict = Depends(verify_t
     if payload['role'] != 'driver':
         raise HTTPException(status_code=403, detail="Solo conductores pueden registrar vehículos")
     
-    driver_dict = {
+    # Procesar y subir fotos a Cloudinary
+    driver_dict = data.model_dump()
+    driver_dict = await upload_driver_photos(driver_dict)
+    
+    driver_dict.update({
         "id": str(uuid.uuid4()),
         "user_id": payload['user_id'],
-        **data.model_dump(),
         "verified": False,
+        "available": False,
         "created_at": datetime.now(timezone.utc).isoformat()
-    }
+    })
     
     await db.drivers.insert_one(driver_dict)
     return {"message": "Información de conductor registrada. Pendiente de verificación."}

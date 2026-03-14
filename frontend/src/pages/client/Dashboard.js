@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Plus, MapPin, Clock, TrendingUp } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
+import AvailableDriversMap from '@/components/AvailableDriversMap';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -135,6 +136,16 @@ export default function ClientDashboard() {
             </div>
           </div>
         </div>
+
+        {/* Mapa con Grúas Disponibles */}
+        <div className="glass-card p-6 rounded-xl mb-8">
+          <h2 className="text-2xl font-bold text-white mb-4">Grúas Disponibles Cerca de Ti</h2>
+          <p className="text-slate-400 mb-4 text-sm">
+            Estas grúas están disponibles y listas para ayudarte
+          </p>
+          <AvailableDriversMap />
+        </div>
+
 
         <div className="glass-card p-6 rounded-xl">
           <h2 className="text-2xl font-bold text-white mb-6">Mis Servicios</h2>

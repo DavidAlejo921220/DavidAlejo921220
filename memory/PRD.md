@@ -1,0 +1,141 @@
+# GruaApp - PRD (Product Requirements Document)
+
+## Descripción del Producto
+GruaApp es un marketplace de servicios de grúa on-demand para Colombia, similar a InDriver. Permite a clientes solicitar servicios de grúa, conductores ofertar precios, y administradores gestionar la plataforma.
+
+## Arquitectura Técnica
+
+### Stack Tecnológico
+- **Backend**: FastAPI (Python) con arquitectura modular de routers
+- **Frontend**: React con TailwindCSS y Shadcn/UI
+- **Base de Datos**: MongoDB (Motor - async driver)
+- **WebSockets**: Socket.IO para tiempo real
+- **Email**: Resend API para OTP
+- **Imágenes**: Cloudinary para almacenamiento
+
+### Estructura del Backend (Refactorizado)
+```
+/app/backend/
+├── main.py              # Punto de entrada FastAPI
+├── server.py            # Wrapper para uvicorn
+├── config.py            # Configuración centralizada
+├── database.py          # Conexión MongoDB
+├── auth.py              # Utilidades JWT
+├── websocket_manager.py # Gestor Socket.IO
+├── models.py            # Modelos Pydantic
+├── utils.py             # Utilidades (OTP, distancias)
+├── cloudinary_helper.py # Upload de imágenes
+├── routers/
+│   ├── auth_router.py     # /api/auth/*
+│   ├── drivers_router.py  # /api/drivers/*
+│   ├── services_router.py # /api/services/*
+│   ├── offers_router.py   # /api/offers/*
+│   ├── chat_router.py     # /api/chat/*
+│   ├── ratings_router.py  # /api/ratings/*
+│   └── admin_router.py    # /api/admin/*
+└── tests/
+    ├── conftest.py
+    ├── test_auth.py
+    ├── test_admin.py
+    └── test_services.py
+```
+
+## Características Implementadas ✅
+
+### Sistema de Autenticación
+- ✅ Registro de usuarios (cliente/conductor/admin)
+- ✅ Login con JWT
+- ✅ Verificación OTP por email (Resend)
+- ✅ Reenvío de OTP
+
+### Panel de Cliente
+- ✅ Dashboard personalizado
+- ✅ Creación de solicitudes de servicio
+- ✅ Mapa interactivo para ubicaciones
+- ✅ Vista de ofertas de conductores
+- ✅ Aceptar/rechazar ofertas
+- ✅ Seguimiento en tiempo real
+- ✅ Chat con conductor
+- ✅ Historial de servicios
+
+### Panel de Conductor
+- ✅ Registro con documentos (Cloudinary)
+- ✅ Toggle de disponibilidad
+- ✅ Lista de servicios disponibles (ordenados por proximidad)
+- ✅ Crear ofertas de precio
+- ✅ Gestión de servicios activos
+- ✅ Sistema de billetera
+- ✅ Historial de transacciones
+- ✅ Notificaciones de saldo bajo
+
+### Panel de Administración
+- ✅ Dashboard con métricas
+- ✅ Gestión de usuarios (bloquear/desbloquear)
+- ✅ Gestión de billeteras de conductores
+- ✅ Recarga manual de saldos
+- ✅ Configuración de comisiones
+
+### Sistema de Billetera
+- ✅ Saldo inicial de $5,000 COP para nuevos conductores
+- ✅ Deducción automática de comisión (5%) al aceptar oferta
+- ✅ Alertas de saldo bajo (<$1,000 COP)
+- ✅ Recarga manual por admin
+- ✅ Historial de transacciones
+
+### Tiempo Real (WebSockets)
+- ✅ Notificaciones de nuevos servicios
+- ✅ Actualización de ubicación del conductor
+- ✅ Alertas de conductor cercano
+- ✅ Chat en tiempo real
+- ✅ Actualizaciones de estado de servicio
+
+## APIs Principales
+
+| Endpoint | Método | Descripción |
+|----------|--------|-------------|
+| `/api/health` | GET | Health check |
+| `/api/auth/register` | POST | Registro de usuario |
+| `/api/auth/login` | POST | Login |
+| `/api/auth/verify-otp` | POST | Verificar OTP |
+| `/api/drivers/register` | POST | Registro de vehículo |
+| `/api/drivers/availability` | POST | Toggle disponibilidad |
+| `/api/drivers/wallet` | GET | Ver billetera |
+| `/api/services/create` | POST | Crear servicio |
+| `/api/services/available` | GET | Servicios disponibles |
+| `/api/offers/create` | POST | Crear oferta |
+| `/api/offers/{id}/accept` | POST | Aceptar oferta |
+| `/api/admin/dashboard` | GET | Métricas admin |
+| `/api/admin/drivers/wallets` | GET | Lista billeteras |
+| `/api/admin/drivers/recharge` | POST | Recargar saldo |
+
+## Credenciales de Prueba
+
+- **Admin**: admin@gruaapp.com / Admin2026!
+
+## Estado de Testing (14 Mar 2026)
+
+- **Backend**: 18/18 tests pasando (100%)
+- **Frontend**: 25/25 tests pasando (100%)
+- **Archivos de test**: `/app/backend/tests/`, `/app/tests/e2e/`
+
+## Próximos Pasos (Backlog)
+
+### P1 - Alta Prioridad
+- [ ] Actualizar logo placeholder a branding oficial GruaApp
+- [ ] Implementar notificaciones push para conductores
+- [ ] Mejorar experiencia de tracking en tiempo real
+
+### P2 - Media Prioridad
+- [ ] App móvil Android (React Native)
+- [ ] Sistema de precios sugeridos automáticos
+- [ ] Historial completo de servicios con filtros
+
+### P3 - Baja Prioridad
+- [ ] Asignación automática estilo Uber
+- [ ] Migración a PostgreSQL (opcional)
+- [ ] Panel de reportes avanzados
+
+## Moneda y Localización
+- Moneda: COP (Pesos Colombianos)
+- Idioma: Español
+- País: Colombia

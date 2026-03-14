@@ -52,8 +52,8 @@ export default function MyServices() {
             if ('Notification' in window && Notification.permission === 'granted') {
               new Notification('GruaApp - Grúa Cerca', {
                 body: data.message,
-                icon: 'https://customer-assets.emergentagent.com/job_tow-nexus/artifacts/ykgd2d1v_WhatsApp%20Image%202026-02-23%20at%207.40.40%20PM.jpeg',
-                badge: 'https://customer-assets.emergentagent.com/job_tow-nexus/artifacts/ykgd2d1v_WhatsApp%20Image%202026-02-23%20at%207.40.40%20PM.jpeg'
+                icon: 'https://static.prod-images.emergentagent.com/jobs/4d6d68fe-1392-4b8b-95de-0896fbae6116/images/6dd94c30201b82c0db798c24c5f11f318e92f4633b0624b679a02b2944046c88.png',
+                badge: 'https://static.prod-images.emergentagent.com/jobs/4d6d68fe-1392-4b8b-95de-0896fbae6116/images/6dd94c30201b82c0db798c24c5f11f318e92f4633b0624b679a02b2944046c88.png'
               });
             } else if ('Notification' in window && Notification.permission === 'default') {
               // Solicitar permiso

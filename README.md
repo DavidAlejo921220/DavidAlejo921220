@@ -474,7 +474,7 @@ yarn test
 ## 🚀 Deployment
 
 ### Opción 1: Emergent Platform (Actual)
-- Ya está desplegado en: https://tow-truck-bids.preview.emergentagent.com
+- Ya está desplegado en: https://driver-client-hub-1.preview.emergentagent.com
 - Deployment automático con cada commit
 
 ### Opción 2: Vercel + Railway

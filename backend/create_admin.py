@@ -47,7 +47,7 @@ async def create_admin():
     print(f"🔑 Password: {admin_password}")
     print("=" * 50)
     print("\n⚠️  IMPORTANTE: Guarda estas credenciales de forma segura")
-    print("🔗 Accede en: https://tow-truck-bids.preview.emergentagent.com/login")
+    print("🔗 Accede en: https://driver-client-hub-1.preview.emergentagent.com/login")
     
     client.close()
 

@@ -11,7 +11,7 @@ export default defineConfig({
     ['json', { outputFile: '/root/.emergent/automation_output/20260314_033957/results.json' }],
   ],
   use: {
-    baseURL: 'https://tow-truck-bids.preview.emergentagent.com',
+    baseURL: 'https://driver-client-hub-1.preview.emergentagent.com',
     screenshot: 'only-on-failure',
     trace: 'off',
     headless: true,

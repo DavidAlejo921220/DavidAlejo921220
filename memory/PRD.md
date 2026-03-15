@@ -3,6 +3,33 @@
 ## Descripción del Producto
 GruaApp es un marketplace de servicios de grúa on-demand para Colombia, similar a InDriver. Permite a clientes solicitar servicios de grúa, conductores ofertar precios, y administradores gestionar la plataforma.
 
+## Cambios Implementados (15 Mar 2026)
+
+### ✅ Correcciones de Hoy
+
+#### 1. Login Admin Verificado
+- ✅ Login funcionando con credenciales: `admin@gruaapp.com` / `Admin123!`
+- ✅ Backend y Frontend verificados
+
+#### 2. Eliminación de Branding Emergent
+- ✅ Scripts de Emergent eliminados de `index.html`
+- ✅ Badge "Made with Emergent" removido
+
+#### 3. SEO Keywords Agregadas
+- ✅ Palabras clave ocultas (sr-only) para Google en Landing page
+- ✅ Incluye: grúa de carro, grúa ya, grúa app, grúa de emergencia
+- ✅ Todas las localidades de Bogotá (Usaquén, Chapinero, Kennedy, Suba, etc.)
+
+#### 4. Flujo de Registro de Conductor Corregido
+- ✅ Registro inicial → muestra mensaje "¡Cuenta creada exitosamente!"
+- ✅ Redirige a formulario de documentos `/driver/registration`
+- ✅ Formulario solicita: placa, tarjeta de propiedad, cédula, seguro RCE
+
+#### 5. Envío de Documentos por Email
+- ✅ Backend configurado para enviar documentos a `gruaap3@gmail.com` via Resend
+- ⚠️ **NOTA**: Resend requiere verificar dominio propio para enviar a otros emails
+- Los documentos NO se guardan en BD, solo se envían por email
+
 ## Cambios Implementados (14 Mar 2026 - Informe de Pruebas)
 
 ### ✅ Correcciones Realizadas

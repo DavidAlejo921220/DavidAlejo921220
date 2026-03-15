@@ -43,6 +43,18 @@ export default function Landing() {
             GruaApp
             <span className="block text-[#00e0ff] mt-2">Tu Grúa en Minutos</span>
           </h1>
+          
+          {/* SEO Keywords - Hidden but visible for Google */}
+          <div className="sr-only" aria-hidden="true">
+            <span>grúa de carro, grúa ya, grúa por aplicación, grúa app, grúa de autos, grúa rápida, grúa de emergencia, </span>
+            <span>grúa al sur de Bogotá, grúa al norte de Bogotá, grúa en Bogotá, grúa en cada barrio de Bogotá, </span>
+            <span>grúa peaje, grúa para patios, servicio de grúa 24 horas, asistencia vehicular Colombia, </span>
+            <span>grúa Usaquén, grúa Chapinero, grúa Santa Fe, grúa San Cristóbal, grúa Usme, grúa Tunjuelito, </span>
+            <span>grúa Bosa, grúa Kennedy, grúa Fontibón, grúa Engativá, grúa Suba, grúa Barrios Unidos, </span>
+            <span>grúa Teusaquillo, grúa Los Mártires, grúa Antonio Nariño, grúa Puente Aranda, grúa La Candelaria, </span>
+            <span>grúa Rafael Uribe Uribe, grúa Ciudad Bolívar, grúa Sumapaz, remolque Bogotá, auxilio vehicular</span>
+          </div>
+          
           <p className="text-xl text-slate-300 mb-12 max-w-2xl mx-auto leading-relaxed">
             La forma más rápida de conseguir grúa en Colombia. 
             Compara precios, elige la mejor oferta y ahorra dinero.

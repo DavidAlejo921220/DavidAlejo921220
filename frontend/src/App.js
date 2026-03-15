@@ -106,6 +106,14 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="/driver/registration"
+                element={
+                  <ProtectedRoute allowedRoles={['driver']}>
+                    <DriverRegistration />
+                  </ProtectedRoute>
+                }
+              />
               
               {/* Admin Routes */}
               <Route

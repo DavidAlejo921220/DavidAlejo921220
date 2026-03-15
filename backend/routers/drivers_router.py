@@ -10,7 +10,7 @@ from auth import verify_token
 from models import DriverRegister, DriverAvailabilityUpdate, LocationUpdate
 from cloudinary_helper import upload_driver_photos
 from websocket_manager import sio
-from utils import calculate_distance
+from utils import calculate_distance, send_driver_documents_email
 from config import INITIAL_DRIVER_BALANCE, LOW_BALANCE_THRESHOLD
 
 router = APIRouter(prefix="/drivers", tags=["Drivers"])
@@ -34,6 +34,12 @@ async def register_driver(data: DriverRegister, payload: dict = Depends(verify_t
     })
     
     await db.drivers.insert_one(driver_dict)
+    
+    # Obtener datos del usuario para el email
+    user_data = await db.users.find_one({"id": payload['user_id']}, {"_id": 0, "password": 0})
+    
+    # Enviar documentos por email al admin
+    await send_driver_documents_email(driver_dict, user_data or {})
     
     return {
         "message": "¡Registro enviado! Tu cuenta está PENDIENTE DE APROBACIÓN. Un administrador revisará tus documentos y te notificaremos cuando estés aprobado.",

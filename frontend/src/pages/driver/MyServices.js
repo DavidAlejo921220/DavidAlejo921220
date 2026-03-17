@@ -83,7 +83,7 @@ export default function DriverMyServices() {
 
   const loadClientInfo = async (clientId) => {
     try {
-      const response = await axios.get(`${API}/users/${clientId}`);
+      const response = await axios.get(`${API}/auth/users/${clientId}`);
       setClientInfo(response.data);
     } catch (error) {
       console.error('Error loading client info');

@@ -11,6 +11,7 @@ import Register from './pages/Register';
 import ClientDashboard from './pages/client/Dashboard';
 import CreateService from './pages/client/CreateService';
 import MyServices from './pages/client/MyServicesWithTracking';
+import ServiceOffers from './pages/client/ServiceOffers';
 import DriverDashboard from './pages/driver/Dashboard';
 import AvailableServices from './pages/driver/AvailableServices';
 import DriverServices from './pages/driver/MyServices';
@@ -77,6 +78,14 @@ function App() {
                 element={
                   <ProtectedRoute allowedRoles={['client']}>
                     <MyServices />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/client/service/:serviceId/offers"
+                element={
+                  <ProtectedRoute allowedRoles={['client']}>
+                    <ServiceOffers />
                   </ProtectedRoute>
                 }
               />

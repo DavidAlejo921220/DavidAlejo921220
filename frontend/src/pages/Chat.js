@@ -101,41 +101,39 @@ export default function Chat() {
                     className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`}
                     data-testid={`message-${msg.id}`}
                   >
-                    {/* Label de mensaje enviado/recibido */}
-                    <div className="flex flex-col">
-                      {!isOwnMessage && (
-                        <span className="text-xs text-slate-500 mb-1 ml-1">Recibido</span>
-                      )}
-                      <div
-                        className={`max-w-[70%] p-4 rounded-2xl ${
-                          isOwnMessage
-                            ? 'bg-[#00e0ff] text-black rounded-br-sm'
-                            : 'bg-[#7200c4] text-white rounded-bl-sm'
-                        }`}
-                      >
-                        <p className="break-words">{msg.message}</p>
-                        <div className={`flex items-center gap-1 mt-2 ${
-                          isOwnMessage ? 'justify-end' : ''
+                    <div
+                      className={`max-w-[75%] p-4 rounded-2xl ${
+                        isOwnMessage
+                          ? 'bg-[#00e0ff] text-black rounded-br-sm'
+                          : 'bg-[#7200c4] text-white rounded-bl-sm'
+                      }`}
+                    >
+                      {/* Label */}
+                      <p className={`text-xs font-bold mb-1 ${
+                        isOwnMessage ? 'text-black/50 text-right' : 'text-white/50'
+                      }`}>
+                        {isOwnMessage ? 'Tú' : 'Recibido'}
+                      </p>
+                      
+                      {/* Mensaje */}
+                      <p className="break-words text-base">{msg.message}</p>
+                      
+                      {/* Hora y check */}
+                      <div className={`flex items-center gap-1 mt-2 ${
+                        isOwnMessage ? 'justify-end' : ''
+                      }`}>
+                        <span className={`text-xs ${
+                          isOwnMessage ? 'text-black/60' : 'text-white/60'
                         }`}>
-                          <span className={`text-xs ${
-                            isOwnMessage ? 'text-black/60' : 'text-white/60'
-                          }`}>
-                            {new Date(msg.created_at).toLocaleTimeString('es-ES', { 
-                              hour: '2-digit', 
-                              minute: '2-digit' 
-                            })}
-                          </span>
-                          {/* Indicador de lectura para mensajes propios */}
-                          {isOwnMessage && (
-                            <CheckCheck className={`h-4 w-4 ${
-                              msg.read ? 'text-blue-600' : 'text-black/40'
-                            }`} />
-                          )}
-                        </div>
+                          {new Date(msg.created_at).toLocaleTimeString('es-ES', { 
+                            hour: '2-digit', 
+                            minute: '2-digit' 
+                          })}
+                        </span>
+                        {isOwnMessage && (
+                          <CheckCheck className="h-4 w-4 text-black/50" />
+                        )}
                       </div>
-                      {isOwnMessage && (
-                        <span className="text-xs text-slate-500 mt-1 mr-1 text-right">Enviado</span>
-                      )}
                     </div>
                   </div>
                 );

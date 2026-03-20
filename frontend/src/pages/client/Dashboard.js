@@ -4,12 +4,13 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useSocket } from '@/contexts/SocketContext';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Plus, MapPin, Clock, TrendingUp, MessageCircle, Truck, Eye, CheckCircle, Navigation, Phone, User } from 'lucide-react';
+import { Plus, MapPin, Clock, TrendingUp, MessageCircle, Truck, Eye, CheckCircle, Navigation, Phone, User, Star } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
 import axios from 'axios';
 import { toast } from 'sonner';
 import NotificationBell from '@/components/NotificationBell';
 import AvailableDriversMap from '@/components/AvailableDriversMap';
+import RatingTipModal from '@/components/RatingTipModal';
 import { formatCurrency } from '@/utils/currency';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -48,7 +49,10 @@ export default function ClientDashboard() {
   const [showDetailDialog, setShowDetailDialog] = useState(false);
   const [driverLocation, setDriverLocation] = useState(null);
   const [driverInfo, setDriverInfo] = useState(null);
+  const [driverVehicleInfo, setDriverVehicleInfo] = useState(null);
   const [showTermsPopup, setShowTermsPopup] = useState(false);
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [serviceToRate, setServiceToRate] = useState(null);
 
   useEffect(() => {
     // Verificar si ya aceptó términos
@@ -88,8 +92,26 @@ export default function ClientDashboard() {
     try {
       const response = await axios.get(`${API}/auth/users/${driverId}`);
       setDriverInfo(response.data);
+      
+      // Cargar info del vehículo del conductor
+      const vehicleResponse = await axios.get(`${API}/drivers/info/${driverId}`);
+      setDriverVehicleInfo(vehicleResponse.data);
     } catch (error) {
       console.error('Error loading driver info');
+    }
+  };
+
+  const checkAndShowRating = async (service) => {
+    if (service.status === 'completed' && service.driver_id) {
+      try {
+        const response = await axios.get(`${API}/ratings/service/${service.id}/check`);
+        if (!response.data.rated) {
+          setServiceToRate(service);
+          setShowRatingModal(true);
+        }
+      } catch (error) {
+        console.error('Error checking rating');
+      }
     }
   };
 
@@ -97,12 +119,18 @@ export default function ClientDashboard() {
     setSelectedService(service);
     setDriverLocation(null);
     setDriverInfo(null);
+    setDriverVehicleInfo(null);
     
     if (service.driver_id) {
       await loadDriverInfo(service.driver_id);
     }
     
     setShowDetailDialog(true);
+    
+    // Si el servicio está completado, verificar si necesita calificación
+    if (service.status === 'completed') {
+      await checkAndShowRating(service);
+    }
   };
 
   const acceptTerms = () => {
@@ -375,7 +403,7 @@ export default function ClientDashboard() {
                     Tu Conductor
                   </h4>
                   <div className="space-y-2">
-                    <p className="text-white text-lg">{driverInfo.full_name}</p>
+                    <p className="text-white text-lg font-bold">{driverInfo.full_name}</p>
                     <a 
                       href={`tel:${driverInfo.phone}`}
                       className="flex items-center gap-2 text-[#00e0ff] hover:underline"
@@ -383,6 +411,18 @@ export default function ClientDashboard() {
                       <Phone className="h-4 w-4" />
                       {driverInfo.phone}
                     </a>
+                    {/* Info del Vehículo */}
+                    {driverVehicleInfo && (
+                      <div className="mt-3 p-3 bg-black/30 rounded-lg">
+                        <div className="flex items-center gap-2 text-yellow-400 font-bold">
+                          <Truck className="h-4 w-4" />
+                          Placa: {driverVehicleInfo.vehicle_plate || 'N/A'}
+                        </div>
+                        <p className="text-slate-400 text-sm mt-1">
+                          {driverVehicleInfo.vehicle_brand} {driverVehicleInfo.vehicle_model}
+                        </p>
+                      </div>
+                    )}
                   </div>
                   <div className="flex gap-2 mt-3">
                     <Button
@@ -469,6 +509,21 @@ export default function ClientDashboard() {
                   Ver Ofertas de Conductores
                 </Button>
               )}
+
+              {/* Botón para calificar servicio completado */}
+              {selectedService.status === 'completed' && selectedService.driver_id && (
+                <Button
+                  onClick={() => {
+                    setServiceToRate(selectedService);
+                    setShowRatingModal(true);
+                  }}
+                  className="w-full bg-yellow-500 text-black hover:bg-yellow-400 font-bold"
+                  data-testid="rate-service-button"
+                >
+                  <Star className="h-4 w-4 mr-2" />
+                  Calificar Servicio y Dejar Propina
+                </Button>
+              )}
             </div>
           )}
         </DialogContent>
@@ -511,6 +566,18 @@ export default function ClientDashboard() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Modal de Calificación y Propina */}
+      <RatingTipModal
+        isOpen={showRatingModal}
+        onClose={() => setShowRatingModal(false)}
+        service={serviceToRate || selectedService}
+        driverInfo={driverInfo}
+        onComplete={() => {
+          setServiceToRate(null);
+          loadServices();
+        }}
+      />
     </div>
   );
 }

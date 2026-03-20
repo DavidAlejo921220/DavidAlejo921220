@@ -173,3 +173,23 @@ async def get_driver_wallet(payload: dict = Depends(verify_token)):
             "verified": driver.get('verified', False)
         }
     }
+
+@router.get("/info/{driver_user_id}")
+async def get_driver_vehicle_info(driver_user_id: str, payload: dict = Depends(verify_token)):
+    """Obtiene la información del vehículo de un conductor (para clientes)"""
+    driver = await db.drivers.find_one({"user_id": driver_user_id}, {"_id": 0})
+    
+    if not driver:
+        return {
+            "vehicle_plate": "N/A",
+            "vehicle_type": "N/A",
+            "vehicle_brand": "N/A",
+            "vehicle_model": "N/A"
+        }
+    
+    return {
+        "vehicle_plate": driver.get('vehicle_plate', 'N/A'),
+        "vehicle_type": driver.get('vehicle_type', 'N/A'),
+        "vehicle_brand": driver.get('vehicle_brand', 'N/A'),
+        "vehicle_model": driver.get('vehicle_model', 'N/A')
+    }

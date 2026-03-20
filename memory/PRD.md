@@ -3,6 +3,46 @@
 ## Descripción del Producto
 GruaApp es un marketplace de servicios de grúa on-demand para Colombia, similar a InDriver. Permite a clientes solicitar servicios de grúa, conductores ofertar precios, y administradores gestionar la plataforma.
 
+## Cambios Implementados (20 Mar 2026)
+
+### ✅ Funcionalidades Nuevas
+
+#### 1. Valor Sugerido por Cliente (Opcional)
+- ✅ Campo nuevo en formulario de solicitud de servicio
+- ✅ Placeholder: "Valor sugerido en COP (ej: 80000)"
+- ✅ Texto explicativo que indica es solo sugerencia
+- ✅ No obligatorio
+
+#### 2. Información del Conductor al Cliente
+- ✅ Nombre del conductor visible cuando acepta servicio
+- ✅ Teléfono clickeable para llamar
+- ✅ **PLACA del vehículo** mostrada en modal
+- ✅ Marca y modelo de la grúa
+- ✅ Botones de Chat y Llamar
+
+#### 3. Sistema de Calificación
+- ✅ Modal de calificación con 5 estrellas
+- ✅ Campo de comentario opcional
+- ✅ Se muestra automáticamente al ver servicio completado
+- ✅ Actualiza reputación del conductor
+
+#### 4. Sistema de Propinas
+- ✅ Modal de propinas voluntarias post-servicio
+- ✅ Montos rápidos: $5.000, $10.000, $20.000, $50.000
+- ✅ Monto personalizado disponible
+- ✅ Mensaje opcional para el conductor
+- ✅ Propina va directo al saldo del conductor
+
+#### 5. Chat Cliente-Conductor
+- ✅ WebSocket funcionando en tiempo real
+- ✅ Mensajes se envían y reciben correctamente
+- ✅ Accesible desde modal de servicio
+
+#### 6. Seguimiento en Tiempo Real
+- ✅ Mapa muestra ubicación del conductor en servicios activos
+- ✅ Línea de ruta entre conductor y punto de recogida
+- ✅ Actualización via WebSocket
+
 ## Cambios Implementados (15 Mar 2026)
 
 ### ✅ Correcciones de Hoy

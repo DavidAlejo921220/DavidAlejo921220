@@ -73,6 +73,7 @@ class ServiceCreate(BaseModel):
     destination_address: Optional[str] = None
     description: Optional[str] = None
     photos: Optional[List[str]] = []
+    suggested_price: Optional[float] = None  # Precio sugerido por el cliente (opcional)
 
 class ServiceResponse(BaseModel):
     id: str
@@ -90,6 +91,7 @@ class ServiceResponse(BaseModel):
     status: str
     driver_id: Optional[str] = None
     final_price: Optional[float] = None
+    suggested_price: Optional[float] = None  # Precio sugerido por el cliente
     distance_to_driver: Optional[float] = None
     created_at: str
     updated_at: str
@@ -139,6 +141,21 @@ class RatingResponse(BaseModel):
     to_user_id: str
     rating: float
     comment: Optional[str] = None
+    created_at: str
+
+class TipCreate(BaseModel):
+    service_id: str
+    driver_id: str
+    amount: float
+    message: Optional[str] = None
+
+class TipResponse(BaseModel):
+    id: str
+    service_id: str
+    client_id: str
+    driver_id: str
+    amount: float
+    message: Optional[str] = None
     created_at: str
 
 class AdminDashboard(BaseModel):

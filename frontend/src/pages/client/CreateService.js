@@ -76,6 +76,7 @@ export default function CreateService() {
     pickup_address: '',
     destination_address: '',
     description: '',
+    suggested_price: '',
   });
 
   useEffect(() => {
@@ -297,6 +298,24 @@ export default function CreateService() {
                   required
                   data-testid="destination-address-input"
                 />
+              </div>
+
+              {/* Valor Sugerido - Opcional */}
+              <div className="p-4 border border-yellow-500/30 rounded-lg bg-yellow-500/5">
+                <Label className="text-yellow-400 mb-2 block font-bold">
+                  💰 ¿Cuánto estás dispuesto a pagar? (Opcional)
+                </Label>
+                <Input
+                  type="number"
+                  placeholder="Valor sugerido en COP (ej: 80000)"
+                  value={formData.suggested_price}
+                  onChange={(e) => setFormData({ ...formData, suggested_price: e.target.value })}
+                  className="bg-black/50 border-yellow-500/30 text-white h-12"
+                  data-testid="suggested-price-input"
+                />
+                <p className="text-slate-400 text-xs mt-2">
+                  Esta es solo una sugerencia. Los conductores pueden enviar ofertas diferentes.
+                </p>
               </div>
 
               <div>

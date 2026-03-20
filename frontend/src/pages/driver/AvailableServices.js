@@ -139,6 +139,15 @@ export default function AvailableServices() {
                   <p className="text-slate-500 text-sm mb-4 line-clamp-2 italic">"{service.description}"</p>
                 )}
 
+                {/* Precio sugerido por el cliente */}
+                {service.suggested_price && (
+                  <div className="mb-4 p-3 bg-yellow-500/10 rounded-lg border border-yellow-500/30">
+                    <p className="text-yellow-400 text-xs font-bold mb-1">💰 PRECIO SUGERIDO POR CLIENTE</p>
+                    <p className="text-yellow-300 text-xl font-bold">{formatCurrency(service.suggested_price)}</p>
+                    <p className="text-slate-500 text-xs mt-1">Puedes aceptar este valor o enviar tu propia oferta</p>
+                  </div>
+                )}
+
                 <Button
                   onClick={() => {
                     setSelectedService(service);

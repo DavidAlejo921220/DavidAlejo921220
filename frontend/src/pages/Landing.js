@@ -46,13 +46,23 @@ export default function Landing() {
           
           {/* SEO Keywords - Hidden but visible for Google */}
           <div className="sr-only" aria-hidden="true">
+            <h2>Servicios de Grúa en Colombia</h2>
             <span>grúa de carro, grúa ya, grúa por aplicación, grúa app, grúa de autos, grúa rápida, grúa de emergencia, </span>
             <span>grúa al sur de Bogotá, grúa al norte de Bogotá, grúa en Bogotá, grúa en cada barrio de Bogotá, </span>
             <span>grúa peaje, grúa para patios, servicio de grúa 24 horas, asistencia vehicular Colombia, </span>
             <span>grúa Usaquén, grúa Chapinero, grúa Santa Fe, grúa San Cristóbal, grúa Usme, grúa Tunjuelito, </span>
             <span>grúa Bosa, grúa Kennedy, grúa Fontibón, grúa Engativá, grúa Suba, grúa Barrios Unidos, </span>
             <span>grúa Teusaquillo, grúa Los Mártires, grúa Antonio Nariño, grúa Puente Aranda, grúa La Candelaria, </span>
-            <span>grúa Rafael Uribe Uribe, grúa Ciudad Bolívar, grúa Sumapaz, remolque Bogotá, auxilio vehicular</span>
+            <span>grúa Rafael Uribe Uribe, grúa Ciudad Bolívar, grúa Sumapaz, remolque Bogotá, auxilio vehicular, </span>
+            <h2>Características del Servicio</h2>
+            <span>grúa con seguimiento en tiempo real, grúa con app, grúa con pago online, grúa con calificación, </span>
+            <span>grúa con conductor verificado, grúa rápida Bogotá app, servicio tipo Uber de grúas, grúa con precio sugerido, </span>
+            <h2>Servicio Confiable</h2>
+            <span>mejor servicio de grúa, grúas confiables, grúa segura, grúa certificada, grúa profesional, </span>
+            <span>grúa recomendada, servicio de grúa confiable, </span>
+            <h2>Grúa para Todo Tipo de Vehículo</h2>
+            <span>grúa para carro particular, grúa para taxi, grúa para uber, grúa para camión, grúa para moto, </span>
+            <span>grúa para SUV, grúa para camioneta, grúa para vehículo pesado</span>
           </div>
           
           <p className="text-xl text-slate-300 mb-12 max-w-2xl mx-auto leading-relaxed">

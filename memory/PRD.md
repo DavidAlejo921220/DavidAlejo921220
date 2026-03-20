@@ -5,7 +5,26 @@ GruaApp es un marketplace de servicios de grúa on-demand para Colombia, similar
 
 ## Cambios Implementados (20 Mar 2026)
 
-### ✅ Funcionalidades Nuevas
+### ✅ Ajustes Adicionales (Sesión 2)
+
+#### 1. Precio Sugerido Visible para Conductor
+- ✅ Conductor ve el precio sugerido por el cliente en tarjeta amarilla destacada
+- ✅ Texto: "PRECIO SUGERIDO POR CLIENTE" + monto en grande
+- ✅ Nota: "Puedes aceptar este valor o enviar tu propia oferta"
+
+#### 2. Chat Mejorado
+- ✅ Diferenciación clara: Mensajes "Enviados" (cyan) vs "Recibidos" (morado)
+- ✅ Indicador de lectura (doble check) para mensajes propios
+- ✅ Bordes redondeados mejorados para mejor visualización
+
+#### 3. SEO Extendido con H2
+- ✅ Palabras clave organizadas en secciones H2 ocultas:
+  - "Servicios de Grúa en Colombia"
+  - "Características del Servicio" (seguimiento tiempo real, app, pago online, calificación, conductor verificado)
+  - "Servicio Confiable" (confiables, segura, certificada, profesional, recomendada)
+  - "Grúa para Todo Tipo de Vehículo" (particular, taxi, uber, camión, moto, SUV, camioneta)
+
+### ✅ Funcionalidades Anteriores (Sesión 1)
 
 #### 1. Valor Sugerido por Cliente (Opcional)
 - ✅ Campo nuevo en formulario de solicitud de servicio

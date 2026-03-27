@@ -22,6 +22,10 @@ import CommissionConfig from './pages/admin/Commission';
 import WalletManagement from './pages/admin/WalletManagement';
 import DriversValidation from './pages/admin/DriversValidation';
 import Chat from './pages/Chat';
+// SEO Pages
+import GruasBogota from './pages/seo/GruasBogota';
+import Gruas24Horas from './pages/seo/Gruas24Horas';
+import GruasBaratas from './pages/seo/GruasBaratas';
 
 function ProtectedRoute({ children, allowedRoles }) {
   const { user, loading } = useAuth();
@@ -55,6 +59,11 @@ function App() {
               <Route path="/" element={<Landing />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              
+              {/* SEO Pages - Public */}
+              <Route path="/gruas-en-bogota" element={<GruasBogota />} />
+              <Route path="/gruas-24-horas-bogota" element={<Gruas24Horas />} />
+              <Route path="/gruas-baratas-bogota" element={<GruasBaratas />} />
               
               {/* Client Routes */}
               <Route

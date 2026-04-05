@@ -16,25 +16,41 @@ export default function Landing() {
       icon: Zap,
       title: 'Solicitud Rápida',
       description: 'Solicita tu grúa en segundos. Solo indica ubicación y destino.',
-      benefit: 'Rapidez'
+      benefit: 'Rapidez',
+      mockup: {
+        title: 'Solicitar Grúa',
+        elements: ['Tipo de vehículo', 'Ubicación actual', 'Destino', 'Enviar solicitud']
+      }
     },
     {
       icon: MapPin,
       title: 'Seguimiento GPS',
       description: 'Ve en tiempo real dónde está tu grúa mientras llega.',
-      benefit: 'Seguimiento 24/7'
+      benefit: 'Seguimiento 24/7',
+      mockup: {
+        title: 'Tu grúa en camino',
+        elements: ['Mapa en vivo', 'ETA: 12 min', 'Conductor: Juan', 'Placa: ABC-123']
+      }
     },
     {
       icon: MessageCircle,
       title: 'Chat Directo',
       description: 'Comunícate con tu conductor sin salir de la app.',
-      benefit: 'Comunicación directa'
+      benefit: 'Comunicación directa',
+      mockup: {
+        title: 'Chat del Servicio',
+        elements: ['Mensajes en tiempo real', 'Enviar ubicación', 'Llamar conductor']
+      }
     },
     {
       icon: Shield,
       title: 'Pago Seguro',
       description: 'Compara ofertas y paga solo cuando aceptes.',
-      benefit: 'Seguridad'
+      benefit: 'Seguridad',
+      mockup: {
+        title: 'Ofertas Recibidas',
+        elements: ['$85.000 - Juan ⭐4.9', '$92.000 - Pedro ⭐4.8', 'Aceptar oferta']
+      }
     }
   ];
 
@@ -43,25 +59,41 @@ export default function Landing() {
       icon: Navigation,
       title: 'Servicios Cercanos',
       description: 'Recibe solicitudes de clientes cerca de tu ubicación.',
-      benefit: 'Más servicios'
+      benefit: 'Más servicios',
+      mockup: {
+        title: 'Servicios Disponibles',
+        elements: ['3 servicios cerca', 'A 2.5 km de ti', 'Ver detalles', 'Enviar oferta']
+      }
     },
     {
       icon: MapPin,
       title: 'Mapa con Ruta',
       description: 'Navegación integrada hasta el punto de recogida.',
-      benefit: 'Mejores tiempos'
+      benefit: 'Mejores tiempos',
+      mockup: {
+        title: 'Navegación',
+        elements: ['Ruta optimizada', 'Punto de recogida', 'Destino final', 'Iniciar GPS']
+      }
     },
     {
       icon: History,
       title: 'Historial de Ganancias',
       description: 'Consulta tus ingresos y estadísticas en tiempo real.',
-      benefit: 'Control total'
+      benefit: 'Control total',
+      mockup: {
+        title: 'Mis Ganancias',
+        elements: ['Hoy: $250.000', 'Semana: $1.2M', '15 servicios', 'Ver detalle']
+      }
     },
     {
       icon: MessageCircle,
       title: 'Chat con Cliente',
       description: 'Coordina detalles directamente con quien te contrata.',
-      benefit: 'Comunicación fácil'
+      benefit: 'Comunicación fácil',
+      mockup: {
+        title: 'Chat',
+        elements: ['Mensajes del cliente', 'Enviar ubicación', 'Confirmar llegada']
+      }
     }
   ];
 
@@ -185,32 +217,62 @@ export default function Landing() {
           </div>
         </div>
 
-        {/* Features Grid */}
+        {/* Features Grid with App Mockups */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 px-4 sm:px-0">
           {(activeTab === 'clients' ? clientFeatures : driverFeatures).map((feature, index) => (
             <div 
               key={index}
-              className={`p-5 sm:p-6 rounded-xl border transition-all hover:scale-105 ${
+              className={`rounded-xl border transition-all hover:scale-105 overflow-hidden ${
                 activeTab === 'clients'
                   ? 'bg-[#111827] border-[#00e0ff]/20 hover:border-[#00e0ff]/50'
                   : 'bg-[#111827] border-[#7200c4]/20 hover:border-[#7200c4]/50'
               }`}
             >
-              <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-lg flex items-center justify-center mb-4 ${
-                activeTab === 'clients' ? 'bg-[#00e0ff]/10' : 'bg-[#7200c4]/10'
-              }`}>
-                <feature.icon className={`h-6 w-6 sm:h-7 sm:w-7 ${
-                  activeTab === 'clients' ? 'text-[#00e0ff]' : 'text-[#7200c4]'
-                }`} />
+              {/* Phone Mockup */}
+              <div className={`p-3 ${activeTab === 'clients' ? 'bg-[#00e0ff]/5' : 'bg-[#7200c4]/5'}`}>
+                <div className="bg-[#0a1120] rounded-xl p-3 border border-white/10">
+                  {/* Phone header */}
+                  <div className={`text-center py-2 rounded-t-lg mb-2 ${
+                    activeTab === 'clients' ? 'bg-[#00e0ff]/10' : 'bg-[#7200c4]/10'
+                  }`}>
+                    <p className={`text-xs font-bold ${
+                      activeTab === 'clients' ? 'text-[#00e0ff]' : 'text-[#7200c4]'
+                    }`}>{feature.mockup.title}</p>
+                  </div>
+                  {/* Phone content */}
+                  <div className="space-y-1.5">
+                    {feature.mockup.elements.map((el, i) => (
+                      <div key={i} className="bg-white/5 rounded px-2 py-1.5 text-xs text-slate-400 flex items-center gap-2">
+                        <div className={`w-1.5 h-1.5 rounded-full ${
+                          activeTab === 'clients' ? 'bg-[#00e0ff]' : 'bg-[#7200c4]'
+                        }`}></div>
+                        {el}
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
-              <h3 className="text-lg sm:text-xl font-bold text-white mb-2">{feature.title}</h3>
-              <p className="text-slate-400 text-sm sm:text-base mb-3">{feature.description}</p>
-              <span className={`inline-flex items-center gap-1 text-xs sm:text-sm font-semibold ${
-                activeTab === 'clients' ? 'text-[#00e0ff]' : 'text-[#7200c4]'
-              }`}>
-                <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4" />
-                {feature.benefit}
-              </span>
+              
+              {/* Feature info */}
+              <div className="p-4 sm:p-5">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                    activeTab === 'clients' ? 'bg-[#00e0ff]/10' : 'bg-[#7200c4]/10'
+                  }`}>
+                    <feature.icon className={`h-5 w-5 ${
+                      activeTab === 'clients' ? 'text-[#00e0ff]' : 'text-[#7200c4]'
+                    }`} />
+                  </div>
+                  <h3 className="text-base sm:text-lg font-bold text-white">{feature.title}</h3>
+                </div>
+                <p className="text-slate-400 text-sm mb-3">{feature.description}</p>
+                <span className={`inline-flex items-center gap-1 text-xs font-semibold ${
+                  activeTab === 'clients' ? 'text-[#00e0ff]' : 'text-[#7200c4]'
+                }`}>
+                  <CheckCircle className="h-3 w-3" />
+                  {feature.benefit}
+                </span>
+              </div>
             </div>
           ))}
         </div>

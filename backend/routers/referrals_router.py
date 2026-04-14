@@ -29,16 +29,21 @@ async def get_wallet_info(payload: dict = Depends(verify_token)):
     # Compatibilidad: usar codigo_referido o referral_code
     referral_code = user.get('codigo_referido') or user.get('referral_code')
     
-    # Si no tiene código de referido, generarlo
+    # Si no tiene código de referido, generarlo y guardarlo
     if not referral_code:
         referral_code = generate_referral_code()
         # Asegurar que sea único
-        while await db.users.find_one({"codigo_referido": referral_code}):
+        while await db.users.find_one({"$or": [{"codigo_referido": referral_code}, {"referral_code": referral_code}]}):
             referral_code = generate_referral_code()
         
         await db.users.update_one(
             {"id": payload['user_id']},
-            {"$set": {"codigo_referido": referral_code, "monedero_comisiones": 0}}
+            {"$set": {
+                "codigo_referido": referral_code, 
+                "referral_code": referral_code,
+                "monedero_comisiones": 0,
+                "commission_balance": 0
+            }}
         )
     
     # Contar referidos (servicios que usaron su código)
@@ -57,15 +62,18 @@ async def get_wallet_info(payload: dict = Depends(verify_token)):
     associated_owner = None
     if associated_code:
         referrer = await db.users.find_one(
-            {"codigo_referido": associated_code}, 
+            {"$or": [{"codigo_referido": associated_code}, {"referral_code": associated_code}]}, 
             {"_id": 0, "full_name": 1}
         )
         if referrer:
             associated_owner = referrer.get('full_name', 'Usuario')
     
+    # Balance: usar el que tenga valor
+    balance = user.get('monedero_comisiones') or user.get('commission_balance', 0)
+    
     return {
         "referral_code": referral_code,
-        "commission_balance": user.get('monedero_comisiones', 0),
+        "commission_balance": balance,
         "total_referrals": total_referrals,
         "pending_withdrawal": pending_withdrawal,
         "associated_referral_code": associated_code,

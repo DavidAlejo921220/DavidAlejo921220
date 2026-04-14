@@ -114,22 +114,29 @@ async def update_service_status(service_id: str, data: ServiceStatusUpdate, payl
         final_price = service.get('final_price', 0)
         
         if final_price > 0:
-            # Buscar al dueño del código de referido
+            # Buscar al dueño del código de referido (buscar en ambos campos por compatibilidad)
             referral_owner = await db.users.find_one(
-                {"referral_code": referral_code},
-                {"_id": 0, "id": 1, "commission_balance": 1}
+                {"$or": [{"codigo_referido": referral_code}, {"referral_code": referral_code}]},
+                {"_id": 0, "id": 1, "monedero_comisiones": 1, "commission_balance": 1}
             )
             
             if referral_owner:
                 # Calcular 5% de comisión
                 commission = final_price * 0.05
-                current_balance = referral_owner.get('commission_balance', 0)
+                # Usar el campo que tenga valor (compatibilidad)
+                current_balance = referral_owner.get('monedero_comisiones') or referral_owner.get('commission_balance', 0)
                 new_balance = current_balance + commission
                 
-                # Actualizar el monedero del dueño del código
+                # Actualizar el monedero del dueño del código (ambos campos para compatibilidad)
                 await db.users.update_one(
                     {"id": referral_owner['id']},
-                    {"$set": {"commission_balance": new_balance}}
+                    {"$set": {"monedero_comisiones": new_balance, "commission_balance": new_balance}}
+                )
+                
+                # Incrementar contador de referidos
+                await db.users.update_one(
+                    {"id": referral_owner['id']},
+                    {"$inc": {"total_referrals": 1}}
                 )
                 
                 # Notificar al usuario que ganó comisión

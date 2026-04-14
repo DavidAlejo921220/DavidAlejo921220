@@ -21,6 +21,7 @@ from routers import (
     ratings_router,
     admin_router
 )
+from routers.referrals_router import router as referrals_router
 
 # Configurar logging
 logging.basicConfig(
@@ -50,6 +51,7 @@ app.include_router(offers_router, prefix="/api")
 app.include_router(chat_router, prefix="/api")
 app.include_router(ratings_router, prefix="/api")
 app.include_router(admin_router, prefix="/api")
+app.include_router(referrals_router, prefix="/api")
 
 # Configurar CORS
 app.add_middleware(

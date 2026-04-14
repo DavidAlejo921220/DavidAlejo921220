@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { DollarSign, Truck, TrendingUp, MapPin, Power, AlertTriangle, MessageCircle, FileWarning, CreditCard, List } from 'lucide-react';
+import { DollarSign, Truck, TrendingUp, MapPin, Power, AlertTriangle, MessageCircle, FileWarning, CreditCard, List, Wallet } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { formatCurrency } from '@/utils/currency';
@@ -151,6 +151,13 @@ export default function DriverDashboard() {
           <div className="container mx-auto px-6 py-4 flex justify-between items-center">
             <img src="https://static.prod-images.emergentagent.com/jobs/4d6d68fe-1392-4b8b-95de-0896fbae6116/images/6dd94c30201b82c0db798c24c5f11f318e92f4633b0624b679a02b2944046c88.png" alt="GruaApp" className="h-10" />
             <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                onClick={() => navigate('/wallet')}
+                className="text-[#00e0ff] hover:bg-[#00e0ff]/10"
+              >
+                <Wallet className="h-5 w-5" />
+              </Button>
               <NotificationBell />
               <span className="text-slate-300">{user?.full_name}</span>
               <Button variant="ghost" onClick={logout} className="text-slate-400 hover:text-white">Salir</Button>

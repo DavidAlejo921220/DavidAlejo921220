@@ -6,29 +6,71 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Mail, Lock, User, Phone, MessageCircle } from 'lucide-react';
+import { Mail, Lock, User, Phone, MessageCircle, Gift, CheckCircle2 } from 'lucide-react';
+import axios from 'axios';
 
 const WHATSAPP_HELP = '+573025159176';
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const API = `${BACKEND_URL}/api`;
 
 export default function Register() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { register } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [referralValid, setReferralValid] = useState(null);
+  const [referralOwner, setReferralOwner] = useState('');
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     full_name: '',
     phone: '',
     role: searchParams.get('role') || 'client',
+    associated_referral_code: searchParams.get('ref') || '',
   });
+
+  // Validar código de referido al escribir
+  const validateReferralCode = async (code) => {
+    if (!code || code.length < 6) {
+      setReferralValid(null);
+      setReferralOwner('');
+      return;
+    }
+    
+    try {
+      const response = await axios.get(`${API}/referrals/validate/${code}`);
+      if (response.data.valid) {
+        setReferralValid(true);
+        setReferralOwner(response.data.owner_name);
+      } else {
+        setReferralValid(false);
+        setReferralOwner('');
+      }
+    } catch (error) {
+      setReferralValid(false);
+      setReferralOwner('');
+    }
+  };
+
+  // Validar si viene código en URL al cargar
+  useState(() => {
+    if (formData.associated_referral_code) {
+      validateReferralCode(formData.associated_referral_code);
+    }
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      await register(formData);
+      // Solo enviar código si es válido
+      const dataToSend = {
+        ...formData,
+        associated_referral_code: referralValid === true ? formData.associated_referral_code.toUpperCase() : null,
+      };
+      
+      await register(dataToSend);
       toast.success('¡Cuenta creada exitosamente!');
       
       // Redirigir según el rol (sin OTP)
@@ -145,6 +187,48 @@ export default function Register() {
                   data-testid="register-password-input"
                 />
               </div>
+            </div>
+
+            {/* Código de Referido */}
+            <div className="p-4 border border-purple-500/30 rounded-lg bg-purple-500/5">
+              <Label htmlFor="referral_code" className="text-purple-400 mb-2 block font-bold flex items-center gap-2">
+                <Gift className="h-4 w-4" />
+                ¿Te recomendó alguien? (Opcional)
+              </Label>
+              <Input
+                id="referral_code"
+                type="text"
+                placeholder="Código de referido (ej: ABC12345)"
+                value={formData.associated_referral_code}
+                onChange={(e) => {
+                  const code = e.target.value.toUpperCase();
+                  setFormData({ ...formData, associated_referral_code: code });
+                  validateReferralCode(code);
+                }}
+                className={`bg-black/50 text-white h-12 uppercase tracking-widest ${
+                  referralValid === true 
+                    ? 'border-green-500' 
+                    : referralValid === false 
+                      ? 'border-red-500' 
+                      : 'border-purple-500/30'
+                }`}
+                maxLength={8}
+                data-testid="register-referral-input"
+              />
+              {referralValid === true && (
+                <p className="text-green-400 text-xs mt-2 flex items-center gap-1">
+                  <CheckCircle2 className="h-3 w-3" />
+                  Referido por: {referralOwner}
+                </p>
+              )}
+              {referralValid === false && (
+                <p className="text-red-400 text-xs mt-2">Código no válido</p>
+              )}
+              {referralValid === null && formData.associated_referral_code === '' && (
+                <p className="text-slate-400 text-xs mt-2">
+                  Si alguien te invitó, ingresa su código aquí
+                </p>
+              )}
             </div>
 
             <Button

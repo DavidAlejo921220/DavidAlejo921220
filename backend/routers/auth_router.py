@@ -13,6 +13,12 @@ from utils import send_otp_email, generate_otp
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
+def generate_referral_code():
+    """Genera un código de referido único de 8 caracteres"""
+    import random
+    import string
+    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+
 @router.post("/register", response_model=AuthResponse)
 async def register(data: UserRegister):
     """Registra un nuevo usuario y envía OTP por email"""
@@ -22,6 +28,18 @@ async def register(data: UserRegister):
     
     hashed_password = bcrypt.hashpw(data.password.encode('utf-8'), bcrypt.gensalt())
     otp_code = generate_otp()
+    
+    # Generar código de referido único para este usuario
+    referral_code = generate_referral_code()
+    while await db.users.find_one({"codigo_referido": referral_code}):
+        referral_code = generate_referral_code()
+    
+    # Validar código de referido asociado si existe
+    associated_referral = None
+    if data.associated_referral_code:
+        referrer = await db.users.find_one({"codigo_referido": data.associated_referral_code.upper()}, {"_id": 0})
+        if referrer:
+            associated_referral = data.associated_referral_code.upper()
     
     user_dict = {
         "id": str(uuid.uuid4()),
@@ -33,7 +51,11 @@ async def register(data: UserRegister):
         "verified": True,  # Auto-verificado (sin OTP)
         "created_at": datetime.now(timezone.utc).isoformat(),
         "reputation_score": 5.0,
-        "status": "active"
+        "status": "active",
+        "codigo_referido": referral_code,
+        "referido_asociado": associated_referral,
+        "monedero_comisiones": 0.0,
+        "total_referrals": 0
     }
     
     await db.users.insert_one(user_dict)

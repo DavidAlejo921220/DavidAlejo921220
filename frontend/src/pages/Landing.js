@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
 import { 
   Truck, Shield, Zap, Users, MapPin, MessageCircle, 
@@ -99,6 +100,12 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen bg-[#0a1120] overflow-x-hidden">
+      <Helmet>
+        <title>GruaApp | Servicio de Grúa en Bogotá 24 Horas</title>
+        <meta name="description" content="Servicio de grúas en Bogotá 24 horas. Atención inmediata, precios económicos y cobertura total. Solicita tu grúa ahora." />
+        <link rel="canonical" href="https://gruaapp.com/" />
+      </Helmet>
+      
       {/* H1 SEO Invisible */}
       <h1 className="sr-only">Servicio de grúa en Bogotá 24 horas</h1>
       

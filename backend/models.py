@@ -9,6 +9,7 @@ class UserRegister(BaseModel):
     full_name: str
     phone: str
     role: str
+    associated_referral_code: Optional[str] = None  # Código de quien lo refirió
 
 class UserLogin(BaseModel):
     email: str
@@ -74,6 +75,7 @@ class ServiceCreate(BaseModel):
     description: Optional[str] = None
     photos: Optional[List[str]] = []
     suggested_price: Optional[float] = None  # Precio sugerido por el cliente (opcional)
+    referral_code_used: Optional[str] = None  # Código de referido usado (opcional)
 
 class ServiceResponse(BaseModel):
     id: str
@@ -92,6 +94,7 @@ class ServiceResponse(BaseModel):
     driver_id: Optional[str] = None
     final_price: Optional[float] = None
     suggested_price: Optional[float] = None  # Precio sugerido por el cliente
+    referral_code_used: Optional[str] = None  # Código de referido usado
     distance_to_driver: Optional[float] = None
     created_at: str
     updated_at: str
@@ -175,3 +178,27 @@ class CommissionConfig(BaseModel):
 class LocationUpdate(BaseModel):
     service_id: str
     location: Dict[str, float]
+
+# ============ SISTEMA DE REFERIDOS Y MONEDERO ============
+
+class WithdrawalRequest(BaseModel):
+    """Solicitud de retiro de comisiones"""
+    nequi_number: str
+
+class WithdrawalResponse(BaseModel):
+    """Respuesta de solicitud de retiro"""
+    id: str
+    user_id: str
+    user_name: str
+    user_email: str
+    amount: float
+    nequi_number: str
+    status: str  # pendiente, completado
+    created_at: str
+
+class WalletInfo(BaseModel):
+    """Info del monedero de comisiones"""
+    referral_code: str
+    commission_balance: float
+    total_referrals: int
+    pending_withdrawal: Optional[WithdrawalResponse] = None

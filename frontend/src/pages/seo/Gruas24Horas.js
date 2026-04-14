@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
 import { Phone, Clock, Moon, Sun, Shield, Zap } from 'lucide-react';
 
@@ -7,6 +8,12 @@ export default function Gruas24Horas() {
 
   return (
     <div className="min-h-screen bg-[#0a1120]">
+      <Helmet>
+        <title>Grúas 24 Horas en Bogotá | Servicio Urgente | GruaApp</title>
+        <meta name="description" content="Servicio de grúas disponible las 24 horas en Bogotá. Atención inmediata en horarios nocturnos y festivos. Llegamos en minutos." />
+        <link rel="canonical" href="https://gruaapp.com/gruas-24-horas-bogota" />
+      </Helmet>
+      
       {/* Hero */}
       <section className="relative py-20 bg-gradient-to-b from-[#111827] to-[#0a1120]">
         <div className="container mx-auto px-6 text-center">

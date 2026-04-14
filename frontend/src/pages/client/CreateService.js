@@ -77,11 +77,40 @@ export default function CreateService() {
     destination_address: '',
     description: '',
     suggested_price: '',
+    referral_code: '',
   });
+  const [referralValid, setReferralValid] = useState(null);
+  const [referralOwner, setReferralOwner] = useState('');
+  const [referralLocked, setReferralLocked] = useState(false); // Si ya tiene código asociado
 
   useEffect(() => {
     getUserLocation();
+    loadUserReferralCode();
   }, []);
+
+  // Cargar código de referido asociado del usuario
+  const loadUserReferralCode = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API}/referrals/wallet`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      // Si el usuario ya tiene un código asociado, pre-llenarlo y bloquearlo
+      if (response.data.associated_referral_code) {
+        setFormData(prev => ({
+          ...prev,
+          referral_code: response.data.associated_referral_code
+        }));
+        setReferralValid(true);
+        setReferralOwner(response.data.associated_referral_owner || 'Usuario');
+        setReferralLocked(true);
+      }
+    } catch (error) {
+      // Si falla, permitir que ingrese manualmente
+      console.log('No se pudo cargar código asociado');
+    }
+  };
 
   const getUserLocation = () => {
     if (navigator.geolocation) {
@@ -135,6 +164,28 @@ export default function CreateService() {
     window.open(`https://wa.me/${WHATSAPP_HELP.replace('+', '')}?text=${message}`, '_blank');
   };
 
+  const validateReferralCode = async (code) => {
+    if (!code || code.length < 6) {
+      setReferralValid(null);
+      setReferralOwner('');
+      return;
+    }
+    
+    try {
+      const response = await axios.get(`${API}/referrals/validate/${code}`);
+      if (response.data.valid) {
+        setReferralValid(true);
+        setReferralOwner(response.data.owner_name);
+      } else {
+        setReferralValid(false);
+        setReferralOwner('');
+      }
+    } catch (error) {
+      setReferralValid(false);
+      setReferralOwner('');
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -166,6 +217,7 @@ export default function CreateService() {
         ...formData,
         pickup_location: pickupLocation,
         destination_location: destinationLocation,
+        referral_code_used: referralValid === true ? formData.referral_code : null,
       };
 
       await axios.post(`${API}/services/create`, serviceData);
@@ -316,6 +368,58 @@ export default function CreateService() {
                 <p className="text-slate-400 text-xs mt-2">
                   Esta es solo una sugerencia. Los conductores pueden enviar ofertas diferentes.
                 </p>
+              </div>
+
+              {/* Código de Referido */}
+              <div className="p-4 border border-purple-500/30 rounded-lg bg-purple-500/5">
+                <Label className="text-purple-400 mb-2 block font-bold">
+                  🎁 Código de Referido {referralLocked ? '(Asociado)' : '(Opcional)'}
+                </Label>
+                <Input
+                  type="text"
+                  placeholder="Ej: ABC12345"
+                  value={formData.referral_code}
+                  onChange={(e) => {
+                    if (referralLocked) return; // No permitir cambiar si está bloqueado
+                    const code = e.target.value.toUpperCase();
+                    setFormData({ ...formData, referral_code: code });
+                    validateReferralCode(code);
+                  }}
+                  disabled={referralLocked}
+                  className={`bg-black/50 text-white h-12 uppercase tracking-widest ${
+                    referralLocked 
+                      ? 'border-green-500 bg-green-500/10 cursor-not-allowed opacity-70'
+                      : referralValid === true 
+                        ? 'border-green-500' 
+                        : referralValid === false 
+                          ? 'border-red-500' 
+                          : 'border-purple-500/30'
+                  }`}
+                  maxLength={8}
+                  data-testid="referral-code-input"
+                />
+                {referralLocked && (
+                  <p className="text-green-400 text-xs mt-2 flex items-center gap-1">
+                    <CheckCircle2 className="h-3 w-3" />
+                    Código de {referralOwner} asociado a tu cuenta
+                  </p>
+                )}
+                {!referralLocked && referralValid === true && (
+                  <p className="text-green-400 text-xs mt-2 flex items-center gap-1">
+                    <CheckCircle2 className="h-3 w-3" />
+                    Código de {referralOwner} aplicado
+                  </p>
+                )}
+                {!referralLocked && referralValid === false && (
+                  <p className="text-red-400 text-xs mt-2">
+                    Código no válido
+                  </p>
+                )}
+                {!referralLocked && referralValid === null && (
+                  <p className="text-slate-400 text-xs mt-2">
+                    Si alguien te recomendó la app, ingresa su código aquí
+                  </p>
+                )}
               </div>
 
               <div>

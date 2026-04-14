@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import '@/App.css';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'sonner';
+import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { SocketProvider } from './contexts/SocketContext';
 
@@ -21,7 +22,9 @@ import UsersManagement from './pages/admin/Users';
 import CommissionConfig from './pages/admin/Commission';
 import WalletManagement from './pages/admin/WalletManagement';
 import DriversValidation from './pages/admin/DriversValidation';
+import WithdrawalRequests from './pages/admin/WithdrawalRequests';
 import Chat from './pages/Chat';
+import MyWallet from './pages/MyWallet';
 // SEO Pages
 import GruasBogota from './pages/seo/GruasBogota';
 import Gruas24Horas from './pages/seo/Gruas24Horas';
@@ -51,22 +54,23 @@ function ProtectedRoute({ children, allowedRoles }) {
 
 function App() {
   return (
-    <div className="App">
-      <BrowserRouter>
-        <AuthProvider>
-          <SocketProvider>
-            <Routes>
-              <Route path="/" element={<Landing />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              
-              {/* SEO Pages - Public */}
-              <Route path="/gruas-en-bogota" element={<GruasBogota />} />
-              <Route path="/gruas-24-horas-bogota" element={<Gruas24Horas />} />
-              <Route path="/gruas-baratas-bogota" element={<GruasBaratas />} />
-              
-              {/* Client Routes */}
-              <Route
+    <HelmetProvider>
+      <div className="App">
+        <BrowserRouter>
+          <AuthProvider>
+            <SocketProvider>
+              <Routes>
+                <Route path="/" element={<Landing />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                
+                {/* SEO Pages - Public */}
+                <Route path="/gruas-en-bogota" element={<GruasBogota />} />
+                <Route path="/gruas-24-horas-bogota" element={<Gruas24Horas />} />
+                <Route path="/gruas-baratas-bogota" element={<GruasBaratas />} />
+                
+                {/* Client Routes */}
+                <Route
                 path="/client/dashboard"
                 element={
                   <ProtectedRoute allowedRoles={['client']}>
@@ -95,6 +99,16 @@ function App() {
                 element={
                   <ProtectedRoute allowedRoles={['client']}>
                     <ServiceOffers />
+                  </ProtectedRoute>
+                }
+              />
+              
+              {/* Wallet - accessible by client and driver */}
+              <Route
+                path="/wallet"
+                element={
+                  <ProtectedRoute allowedRoles={['client', 'driver']}>
+                    <MyWallet />
                   </ProtectedRoute>
                 }
               />
@@ -175,6 +189,14 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="/admin/withdrawals"
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <WithdrawalRequests />
+                  </ProtectedRoute>
+                }
+              />
 
               {/* Chat Route */}
               <Route
@@ -191,6 +213,7 @@ function App() {
         </AuthProvider>
       </BrowserRouter>
     </div>
+    </HelmetProvider>
   );
 }
 

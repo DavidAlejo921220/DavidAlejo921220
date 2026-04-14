@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useSocket } from '@/contexts/SocketContext';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Plus, MapPin, Clock, TrendingUp, MessageCircle, Truck, Eye, CheckCircle, Navigation, Phone, User, Star } from 'lucide-react';
+import { Plus, MapPin, Clock, TrendingUp, MessageCircle, Truck, Eye, CheckCircle, Navigation, Phone, User, Star, Wallet } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -192,6 +192,14 @@ export default function ClientDashboard() {
             />
           </div>
           <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              onClick={() => navigate('/wallet')}
+              className="text-[#00e0ff] hover:bg-[#00e0ff]/10"
+              data-testid="wallet-button"
+            >
+              <Wallet className="h-5 w-5" />
+            </Button>
             <NotificationBell />
             <span className="text-slate-300">Hola, {user?.full_name}</span>
             <Button variant="ghost" onClick={logout} className="text-slate-400 hover:text-white" data-testid="logout-button">

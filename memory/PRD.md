@@ -3,6 +3,16 @@
 ## Descripción del Producto
 GruaApp es un marketplace de servicios de grúa on-demand para Colombia, similar a InDriver. Permite a clientes solicitar servicios de grúa, conductores ofertar precios, y administradores gestionar la plataforma.
 
+## Cambios Implementados (14 Abril 2026)
+
+### ✅ Sistema de Referidos Mejorado
+- ✅ Código de referido ahora se puede asociar al momento del **REGISTRO** (cliente o conductor)
+- ✅ Campo "¿Te recomendó alguien?" en formulario de registro con validación en tiempo real
+- ✅ URL con parámetro `?ref=CODIGO` pre-llena el campo automáticamente
+- ✅ En "Solicitar Grúa", si el usuario ya tiene código asociado, aparece **bloqueado y pre-llenado**
+- ✅ Si no tiene código asociado, puede agregarlo manualmente en cualquier servicio
+- ✅ Backend actualizado para guardar `referido_asociado` en el usuario
+
 ## Cambios Implementados (20 Mar 2026)
 
 ### ✅ Ajustes Adicionales (Sesión 2)

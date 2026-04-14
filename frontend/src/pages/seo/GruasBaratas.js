@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
 import { Phone, DollarSign, CheckCircle, TrendingDown, Truck, Calculator } from 'lucide-react';
 
@@ -7,6 +8,12 @@ export default function GruasBaratas() {
 
   return (
     <div className="min-h-screen bg-[#0a1120]">
+      <Helmet>
+        <title>Grúas Baratas en Bogotá | Precios desde $80.000 | GruaApp</title>
+        <meta name="description" content="Encuentra grúas económicas en Bogotá. Precios desde $80.000 COP. Compara ofertas de diferentes conductores y elige la mejor opción." />
+        <link rel="canonical" href="https://gruaapp.com/gruas-baratas-bogota" />
+      </Helmet>
+      
       {/* Hero */}
       <section className="relative py-20 bg-gradient-to-b from-[#111827] to-[#0a1120]">
         <div className="container mx-auto px-6 text-center">

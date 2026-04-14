@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Users, Truck, DollarSign, Activity, Settings } from 'lucide-react';
+import { Users, Truck, DollarSign, Activity, Settings, Wallet } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -173,6 +173,13 @@ export default function AdminDashboard() {
                   >
                     <Users className="mr-2 h-5 w-5" />
                     Gestionar Usuarios
+                  </Button>
+                  <Button
+                    onClick={() => navigate('/admin/withdrawals')}
+                    className="w-full bg-green-500 text-white hover:bg-green-600 font-bold justify-start"
+                  >
+                    <Wallet className="mr-2 h-5 w-5" />
+                    Solicitudes de Retiro
                   </Button>
                   <Button
                     onClick={() => navigate('/admin/commission')}

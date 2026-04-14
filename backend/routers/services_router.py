@@ -108,6 +108,37 @@ async def update_service_status(service_id: str, data: ServiceStatusUpdate, payl
         {"$set": {"status": data.status, "updated_at": datetime.now(timezone.utc).isoformat()}}
     )
     
+    # Si el servicio se completa, calcular comisión de referido (5%)
+    if data.status == "completed" and service.get('referral_code_used'):
+        referral_code = service['referral_code_used']
+        final_price = service.get('final_price', 0)
+        
+        if final_price > 0:
+            # Buscar al dueño del código de referido
+            referral_owner = await db.users.find_one(
+                {"referral_code": referral_code},
+                {"_id": 0, "id": 1, "commission_balance": 1}
+            )
+            
+            if referral_owner:
+                # Calcular 5% de comisión
+                commission = final_price * 0.05
+                current_balance = referral_owner.get('commission_balance', 0)
+                new_balance = current_balance + commission
+                
+                # Actualizar el monedero del dueño del código
+                await db.users.update_one(
+                    {"id": referral_owner['id']},
+                    {"$set": {"commission_balance": new_balance}}
+                )
+                
+                # Notificar al usuario que ganó comisión
+                await sio.emit('referral_commission', {
+                    "amount": commission,
+                    "new_balance": new_balance,
+                    "message": f"¡Ganaste ${commission:,.0f} COP por referido!"
+                }, room=f"user_{referral_owner['id']}")
+    
     await sio.emit('status_updated', {"service_id": service_id, "status": data.status}, room=f'service_{service_id}')
     
     return {"message": "Estado actualizado"}

@@ -17,6 +17,9 @@ export default function DriverRegistration() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [referralCode, setReferralCode] = useState('');
+  const [referralValid, setReferralValid] = useState(null);
+  const [referralOwner, setReferralOwner] = useState('');
   const [formData, setFormData] = useState({
     vehicle_type: '',
     vehicle_brand: '',
@@ -30,6 +33,32 @@ export default function DriverRegistration() {
     cedula_photo_url: '',           // NUEVO: Cédula del propietario
     insurance_photo_url: ''         // NUEVO: Seguro de Responsabilidad Civil
   });
+
+  // Validar código de referido
+  const validateReferralCode = async (code) => {
+    if (!code || code.length < 4) {
+      setReferralValid(null);
+      setReferralOwner('');
+      return;
+    }
+    
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API}/referrals/validate/${code}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (response.data.valid) {
+        setReferralValid(true);
+        setReferralOwner(response.data.owner_name);
+      } else {
+        setReferralValid(false);
+        setReferralOwner('');
+      }
+    } catch (error) {
+      setReferralValid(false);
+      setReferralOwner('');
+    }
+  };
 
   const handlePhotoUpload = async (e, fieldName) => {
     const file = e.target.files[0];
@@ -95,6 +124,13 @@ export default function DriverRegistration() {
     setLoading(true);
 
     try {
+      // Si hay código de referido válido, guardarlo en el usuario
+      if (referralCode && referralValid === true) {
+        await axios.post(`${API}/referrals/associate`, {
+          referral_code: referralCode.toUpperCase()
+        });
+      }
+      
       const response = await axios.post(`${API}/drivers/register`, formData);
       toast.success(response.data.message || '¡Registro enviado!');
       toast.info('Tu cuenta está pendiente de aprobación. Te notificaremos cuando seas aprobado.', { duration: 8000 });
@@ -142,6 +178,38 @@ export default function DriverRegistration() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Código de Referido (Opcional) */}
+          <Card className="glass-card p-6 border border-purple-500/30 bg-purple-500/5">
+            <h2 className="text-xl font-bold text-purple-400 mb-4">🎁 ¿Te invitó otro conductor?</h2>
+            <p className="text-slate-400 text-sm mb-4">
+              Si otro conductor te invitó a la plataforma, ingresa su código. Cuando completes tu primer servicio, él recibirá un bono en su saldo.
+            </p>
+            <Input
+              placeholder="Código de 4 caracteres (ej: AB12)"
+              value={referralCode}
+              onChange={(e) => {
+                const code = e.target.value.toUpperCase();
+                setReferralCode(code);
+                validateReferralCode(code);
+              }}
+              className={`bg-black/50 text-white h-12 uppercase tracking-widest ${
+                referralValid === true 
+                  ? 'border-green-500' 
+                  : referralValid === false 
+                    ? 'border-red-500' 
+                    : 'border-purple-500/30'
+              }`}
+              maxLength={4}
+              data-testid="driver-referral-code-input"
+            />
+            {referralValid === true && (
+              <p className="text-green-400 text-sm mt-2">✓ Código de {referralOwner} válido</p>
+            )}
+            {referralValid === false && referralCode.length > 0 && (
+              <p className="text-red-400 text-sm mt-2">✗ Código no válido</p>
+            )}
+          </Card>
+
           {/* Información del Vehículo */}
           <Card className="glass-card p-6 border border-white/10">
             <h2 className="text-2xl font-bold text-white mb-4">Información del Vehículo</h2>

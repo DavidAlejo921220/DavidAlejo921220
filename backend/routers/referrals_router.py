@@ -171,6 +171,41 @@ async def validate_referral_code(code: str, payload: dict = Depends(verify_token
     return {"valid": False, "message": "Código no encontrado"}
 
 
+@router.post("/associate")
+async def associate_referral_code(data: dict, payload: dict = Depends(verify_token)):
+    """Asocia un código de referido al usuario actual (para conductores al registrarse)"""
+    code = data.get('referral_code', '').upper()
+    
+    if not code or len(code) < 4:
+        raise HTTPException(status_code=400, detail="Código inválido")
+    
+    # Verificar que el usuario no tenga ya un código asociado
+    user = await db.users.find_one({"id": payload['user_id']}, {"_id": 0, "referido_asociado": 1})
+    if user and user.get('referido_asociado'):
+        raise HTTPException(status_code=400, detail="Ya tienes un código de referido asociado")
+    
+    # Verificar que el código existe
+    owner = await db.users.find_one(
+        {"$or": [{"codigo_referido": code}, {"referral_code": code}]},
+        {"_id": 0, "id": 1}
+    )
+    
+    if not owner:
+        raise HTTPException(status_code=404, detail="Código no encontrado")
+    
+    # No puede asociar su propio código
+    if owner['id'] == payload['user_id']:
+        raise HTTPException(status_code=400, detail="No puedes usar tu propio código")
+    
+    # Asociar el código
+    await db.users.update_one(
+        {"id": payload['user_id']},
+        {"$set": {"referido_asociado": code}}
+    )
+    
+    return {"message": "Código asociado exitosamente", "referral_code": code}
+
+
 # ============ ADMIN ENDPOINTS ============
 
 @router.get("/admin/withdrawals", response_model=list[WithdrawalResponse])

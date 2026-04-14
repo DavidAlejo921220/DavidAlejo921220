@@ -109,52 +109,103 @@ async def update_service_status(service_id: str, data: ServiceStatusUpdate, payl
     )
     
     # Si el servicio se completa, calcular comisión/cashback (5%)
-    if data.status == "completed" and service.get('referral_code_used'):
-        referral_code = service['referral_code_used']
+    if data.status == "completed":
+        driver_id = service.get('driver_id')
         final_price = service.get('final_price', 0)
-        client_id = service.get('client_id')
         
-        if final_price > 0:
-            # Buscar al dueño del código
-            code_owner = await db.users.find_one(
-                {"$or": [{"codigo_referido": referral_code}, {"referral_code": referral_code}]},
-                {"_id": 0, "id": 1, "monedero_comisiones": 1, "commission_balance": 1, "full_name": 1}
-            )
+        # === LÓGICA DE REFERIDOS PARA CONDUCTORES ===
+        # Si es el PRIMER servicio del conductor, dar 5% al que lo refirió
+        if driver_id and final_price > 0:
+            # Verificar si es el primer servicio completado de este conductor
+            completed_count = await db.services.count_documents({
+                "driver_id": driver_id,
+                "status": "completed"
+            })
             
-            if code_owner:
-                # Calcular 5%
-                commission = final_price * 0.05
-                current_balance = code_owner.get('monedero_comisiones') or code_owner.get('commission_balance', 0)
-                new_balance = current_balance + commission
-                
-                # Determinar si es CASHBACK (propio código) o COMISIÓN (código ajeno)
-                is_cashback = code_owner['id'] == client_id
-                
-                # Actualizar monedero del dueño del código
-                await db.users.update_one(
-                    {"id": code_owner['id']},
-                    {"$set": {"monedero_comisiones": new_balance, "commission_balance": new_balance}}
+            # Solo en el PRIMER servicio (este que acabamos de completar cuenta como 1)
+            if completed_count == 1:
+                # Buscar si el conductor tiene referidor
+                driver_user = await db.users.find_one({"id": driver_id}, {"_id": 0, "referido_asociado": 1})
+                if driver_user and driver_user.get('referido_asociado'):
+                    referrer_code = driver_user['referido_asociado']
+                    
+                    # Buscar al conductor que lo refirió
+                    referrer = await db.users.find_one(
+                        {"$or": [{"codigo_referido": referrer_code}, {"referral_code": referrer_code}]},
+                        {"_id": 0, "id": 1, "full_name": 1}
+                    )
+                    
+                    if referrer:
+                        # Buscar el driver record del referidor para obtener wallet_balance
+                        referrer_driver = await db.drivers.find_one(
+                            {"user_id": referrer['id']},
+                            {"_id": 0, "wallet_balance": 1}
+                        )
+                        
+                        if referrer_driver:
+                            # Calcular 5% y agregar a SALDO OPERATIVO (wallet_balance)
+                            commission = final_price * 0.05
+                            current_wallet = referrer_driver.get('wallet_balance', 0)
+                            new_wallet = current_wallet + commission
+                            
+                            await db.drivers.update_one(
+                                {"user_id": referrer['id']},
+                                {"$set": {"wallet_balance": new_wallet}}
+                            )
+                            
+                            # Notificar al referidor
+                            await sio.emit('driver_referral_bonus', {
+                                "amount": commission,
+                                "new_wallet_balance": new_wallet,
+                                "message": f"¡Bono por referido! +${commission:,.0f} COP a tu saldo operativo"
+                            }, room=f"user_{referrer['id']}")
+        
+        # === LÓGICA DE REFERIDOS PARA CLIENTES (Cashback/Comisión) ===
+        if service.get('referral_code_used'):
+            referral_code = service['referral_code_used']
+            client_id = service.get('client_id')
+            
+            if final_price > 0:
+                # Buscar al dueño del código
+                code_owner = await db.users.find_one(
+                    {"$or": [{"codigo_referido": referral_code}, {"referral_code": referral_code}]},
+                    {"_id": 0, "id": 1, "monedero_comisiones": 1, "commission_balance": 1, "full_name": 1}
                 )
                 
-                # Incrementar contador solo si es referido (no cashback)
-                if not is_cashback:
+                if code_owner:
+                    # Calcular 5%
+                    commission = final_price * 0.05
+                    current_balance = code_owner.get('monedero_comisiones') or code_owner.get('commission_balance', 0)
+                    new_balance = current_balance + commission
+                    
+                    # Determinar si es CASHBACK (propio código) o COMISIÓN (código ajeno)
+                    is_cashback = code_owner['id'] == client_id
+                    
+                    # Actualizar monedero del dueño del código
                     await db.users.update_one(
                         {"id": code_owner['id']},
-                        {"$inc": {"total_referrals": 1}}
+                        {"$set": {"monedero_comisiones": new_balance, "commission_balance": new_balance}}
                     )
-                
-                # Notificar
-                if is_cashback:
-                    message = f"¡Cashback! Ganaste ${commission:,.0f} COP"
-                else:
-                    message = f"¡Comisión por referido! Ganaste ${commission:,.0f} COP"
-                
-                await sio.emit('referral_commission', {
-                    "amount": commission,
-                    "new_balance": new_balance,
-                    "is_cashback": is_cashback,
-                    "message": message
-                }, room=f"user_{code_owner['id']}")
+                    
+                    # Incrementar contador solo si es referido (no cashback)
+                    if not is_cashback:
+                        await db.users.update_one(
+                            {"id": code_owner['id']},
+                            {"$inc": {"total_referrals": 1}}
+                        )
+                    
+                    # Notificar
+                    if is_cashback:
+                        message = f"¡Cashback! Ganaste ${commission:,.0f} COP"
+                    else:
+                        message = f"¡Comisión por referido! Ganaste ${commission:,.0f} COP"
+                    
+                    await sio.emit('referral_commission', {
+                        "amount": commission,
+                        "new_balance": new_balance,
+                        "is_cashback": is_cashback,
+                        "message": message
+                    }, room=f"user_{code_owner['id']}")
     
     await sio.emit('status_updated', {"service_id": service_id, "status": data.status}, room=f'service_{service_id}')
     

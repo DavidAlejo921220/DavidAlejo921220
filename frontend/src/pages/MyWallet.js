@@ -41,6 +41,14 @@ export default function MyWallet() {
     }
   };
 
+  const shareWhatsApp = () => {
+    if (walletInfo?.referral_code) {
+      const url = `${window.location.origin}/register?ref=${walletInfo.referral_code}`;
+      const mensaje = `¡Hola! Te invito a usar GruaApp para servicios de grúa. Regístrate con mi código ${walletInfo.referral_code} aquí: ${url}`;
+      window.open(`https://wa.me/?text=${encodeURIComponent(mensaje)}`, '_blank');
+    }
+  };
+
   const handleWithdraw = async () => {
     if (!nequiNumber || nequiNumber.length !== 10) {
       toast.error('Ingresa un número Nequi válido (10 dígitos)');
@@ -143,10 +151,20 @@ export default function MyWallet() {
               onClick={copyReferralCode}
               variant="outline"
               className="border-[#00e0ff]/30 text-[#00e0ff] hover:bg-[#00e0ff]/10"
+              title="Copiar código"
             >
               <Copy className="h-5 w-5" />
             </Button>
           </div>
+          
+          {/* Botón compartir WhatsApp */}
+          <Button
+            onClick={shareWhatsApp}
+            className="w-full bg-green-600 hover:bg-green-700 text-white font-bold"
+          >
+            <Send className="h-5 w-5 mr-2" />
+            Compartir por WhatsApp
+          </Button>
           
           <p className="text-slate-400 text-sm">
             Comparte este código con tus amigos. Cuando lo usen en un servicio, 

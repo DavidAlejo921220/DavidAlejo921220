@@ -108,43 +108,53 @@ async def update_service_status(service_id: str, data: ServiceStatusUpdate, payl
         {"$set": {"status": data.status, "updated_at": datetime.now(timezone.utc).isoformat()}}
     )
     
-    # Si el servicio se completa, calcular comisión de referido (5%)
+    # Si el servicio se completa, calcular comisión/cashback (5%)
     if data.status == "completed" and service.get('referral_code_used'):
         referral_code = service['referral_code_used']
         final_price = service.get('final_price', 0)
+        client_id = service.get('client_id')
         
         if final_price > 0:
-            # Buscar al dueño del código de referido (buscar en ambos campos por compatibilidad)
-            referral_owner = await db.users.find_one(
+            # Buscar al dueño del código
+            code_owner = await db.users.find_one(
                 {"$or": [{"codigo_referido": referral_code}, {"referral_code": referral_code}]},
-                {"_id": 0, "id": 1, "monedero_comisiones": 1, "commission_balance": 1}
+                {"_id": 0, "id": 1, "monedero_comisiones": 1, "commission_balance": 1, "full_name": 1}
             )
             
-            if referral_owner:
-                # Calcular 5% de comisión
+            if code_owner:
+                # Calcular 5%
                 commission = final_price * 0.05
-                # Usar el campo que tenga valor (compatibilidad)
-                current_balance = referral_owner.get('monedero_comisiones') or referral_owner.get('commission_balance', 0)
+                current_balance = code_owner.get('monedero_comisiones') or code_owner.get('commission_balance', 0)
                 new_balance = current_balance + commission
                 
-                # Actualizar el monedero del dueño del código (ambos campos para compatibilidad)
+                # Determinar si es CASHBACK (propio código) o COMISIÓN (código ajeno)
+                is_cashback = code_owner['id'] == client_id
+                
+                # Actualizar monedero del dueño del código
                 await db.users.update_one(
-                    {"id": referral_owner['id']},
+                    {"id": code_owner['id']},
                     {"$set": {"monedero_comisiones": new_balance, "commission_balance": new_balance}}
                 )
                 
-                # Incrementar contador de referidos
-                await db.users.update_one(
-                    {"id": referral_owner['id']},
-                    {"$inc": {"total_referrals": 1}}
-                )
+                # Incrementar contador solo si es referido (no cashback)
+                if not is_cashback:
+                    await db.users.update_one(
+                        {"id": code_owner['id']},
+                        {"$inc": {"total_referrals": 1}}
+                    )
                 
-                # Notificar al usuario que ganó comisión
+                # Notificar
+                if is_cashback:
+                    message = f"¡Cashback! Ganaste ${commission:,.0f} COP"
+                else:
+                    message = f"¡Comisión por referido! Ganaste ${commission:,.0f} COP"
+                
                 await sio.emit('referral_commission', {
                     "amount": commission,
                     "new_balance": new_balance,
-                    "message": f"¡Ganaste ${commission:,.0f} COP por referido!"
-                }, room=f"user_{referral_owner['id']}")
+                    "is_cashback": is_cashback,
+                    "message": message
+                }, room=f"user_{code_owner['id']}")
     
     await sio.emit('status_updated', {"service_id": service_id, "status": data.status}, room=f'service_{service_id}')
     

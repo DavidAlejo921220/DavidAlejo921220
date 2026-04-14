@@ -3,17 +3,31 @@
 ## Descripción del Producto
 GruaApp es un marketplace de servicios de grúa on-demand para Colombia, similar a InDriver. Permite a clientes solicitar servicios de grúa, conductores ofertar precios, y administradores gestionar la plataforma.
 
-## Cambios Implementados (14 Abril 2026)
+## Cambios Implementados (14 Abril 2026) - Correcciones Críticas
 
-### ✅ Sistema de Referidos Mejorado
-- ✅ Código de referido ahora se puede asociar al momento del **REGISTRO** (cliente o conductor)
-- ✅ Campo "¿Te recomendó alguien?" en formulario de registro con validación en tiempo real
-- ✅ URL con parámetro `?ref=CODIGO` pre-llena el campo automáticamente
-- ✅ En "Solicitar Grúa", si el usuario ya tiene código asociado, aparece **bloqueado y pre-llenado**
-- ✅ Si no tiene código asociado, puede agregarlo manualmente en cualquier servicio
-- ✅ Backend actualizado para guardar `referido_asociado` en el usuario
+### ✅ 1. Sistema de Referidos - Códigos de 4 Caracteres
+- Códigos reducidos de 8 a **4 caracteres** alfanuméricos
+- Códigos existentes migrados automáticamente (ej: `1XMEME90` → `LO4I`)
+- Sincronización completa entre `codigo_referido` y `referral_code`
 
-## Cambios Implementados (20 Mar 2026)
+### ✅ 2. Nueva Lógica de Cashback/Comisión (5%)
+- Código propio del usuario **pre-llenado** en formulario de servicio
+- **Cashback**: Si usa su propio código → 5% va a su billetera
+- **Comisión**: Si usa código de otro → 5% va a billetera del dueño del código
+- Validación obligatoria: botón "Solicitar Grúa" bloqueado si código es inválido
+- Nunca se pagan dos comisiones por el mismo servicio
+
+### ✅ 3. Geocoding Automático (Dirección → Mapa)
+- Al escribir dirección de recogida/destino, el mapa se actualiza automáticamente
+- Usa Nominatim (OpenStreetMap) - API gratuita
+- Texto: "Al escribir, el mapa se actualizará automáticamente"
+
+### ✅ 4. Coordenadas GPS para Conductores
+- Cada servicio muestra botones **Google Maps** y **Waze** en recogida y destino
+- Los conductores pueden abrir navegación GPS directamente
+- Payload incluye: dirección texto + coordenadas (lat/lng)
+
+## Cambios Anteriores (Sesiones Previas)
 
 ### ✅ Ajustes Adicionales (Sesión 2)
 

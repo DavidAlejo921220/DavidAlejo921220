@@ -14,10 +14,10 @@ from utils import send_otp_email, generate_otp
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 def generate_referral_code():
-    """Genera un código de referido único de 8 caracteres"""
+    """Genera un código de referido único de 4 caracteres alfanuméricos"""
     import random
     import string
-    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
 
 @router.post("/register", response_model=AuthResponse)
 async def register(data: UserRegister):

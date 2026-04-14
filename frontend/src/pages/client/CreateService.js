@@ -81,34 +81,66 @@ export default function CreateService() {
   });
   const [referralValid, setReferralValid] = useState(null);
   const [referralOwner, setReferralOwner] = useState('');
-  const [referralLocked, setReferralLocked] = useState(false); // Si ya tiene código asociado
+  const [myOwnCode, setMyOwnCode] = useState(''); // Código propio del usuario
+  const [validatingCode, setValidatingCode] = useState(false);
 
   useEffect(() => {
     getUserLocation();
-    loadUserReferralCode();
+    loadUserOwnCode();
   }, []);
 
-  // Cargar código de referido asociado del usuario
-  const loadUserReferralCode = async () => {
+  // Cargar código PROPIO del usuario y pre-llenarlo
+  const loadUserOwnCode = async () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get(`${API}/referrals/wallet`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      // Si el usuario ya tiene un código asociado, pre-llenarlo y bloquearlo
-      if (response.data.associated_referral_code) {
+      // Pre-llenar con el código PROPIO del usuario (para cashback)
+      if (response.data.referral_code) {
+        const ownCode = response.data.referral_code;
+        setMyOwnCode(ownCode);
         setFormData(prev => ({
           ...prev,
-          referral_code: response.data.associated_referral_code
+          referral_code: ownCode
         }));
         setReferralValid(true);
-        setReferralOwner(response.data.associated_referral_owner || 'Usuario');
-        setReferralLocked(true);
+        setReferralOwner('Tú (Cashback 5%)');
       }
     } catch (error) {
-      // Si falla, permitir que ingrese manualmente
-      console.log('No se pudo cargar código asociado');
+      console.log('Error cargando código propio');
+    }
+  };
+
+  // Geocoding: convertir dirección a coordenadas
+  const geocodeAddress = async (address, type) => {
+    if (!address || address.length < 5) return;
+    
+    try {
+      // Usar Nominatim (OpenStreetMap) - gratis
+      const response = await axios.get(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address + ', Colombia')}&limit=1`
+      );
+      
+      if (response.data && response.data.length > 0) {
+        const result = response.data[0];
+        const location = { lat: parseFloat(result.lat), lng: parseFloat(result.lon) };
+        
+        if (type === 'pickup') {
+          setPickupLocation(location);
+          setMapCenter(location);
+          setMapKey(prev => prev + 1);
+          toast.success('📍 Ubicación de recogida encontrada');
+        } else {
+          setDestinationLocation(location);
+          setMapCenter(location);
+          setMapKey(prev => prev + 1);
+          toast.success('🏁 Ubicación de destino encontrada');
+        }
+      }
+    } catch (error) {
+      console.log('Geocoding error:', error);
     }
   };
 
@@ -165,17 +197,28 @@ export default function CreateService() {
   };
 
   const validateReferralCode = async (code) => {
-    if (!code || code.length < 6) {
-      setReferralValid(null);
+    if (!code || code.length < 4) {
+      setReferralValid(false);
       setReferralOwner('');
       return;
     }
     
+    // Si es su propio código
+    if (code.toUpperCase() === myOwnCode.toUpperCase()) {
+      setReferralValid(true);
+      setReferralOwner('Tú (Cashback 5%)');
+      return;
+    }
+    
+    setValidatingCode(true);
     try {
-      const response = await axios.get(`${API}/referrals/validate/${code}`);
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API}/referrals/validate/${code}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       if (response.data.valid) {
         setReferralValid(true);
-        setReferralOwner(response.data.owner_name);
+        setReferralOwner(response.data.owner_name + ' (Comisión 5%)');
       } else {
         setReferralValid(false);
         setReferralOwner('');
@@ -183,7 +226,22 @@ export default function CreateService() {
     } catch (error) {
       setReferralValid(false);
       setReferralOwner('');
+    } finally {
+      setValidatingCode(false);
     }
+  };
+
+  // Verificar si el formulario es válido
+  const isFormValid = () => {
+    return (
+      pickupLocation &&
+      destinationLocation &&
+      formData.pickup_address &&
+      formData.destination_address &&
+      formData.vehicle_type &&
+      formData.referral_code &&
+      referralValid === true
+    );
   };
 
   const handleSubmit = async (e) => {
@@ -198,6 +256,11 @@ export default function CreateService() {
     if (!destinationLocation) {
       toast.error('❌ Debes marcar el punto de DESTINO en el mapa');
       setCurrentStep('destination');
+      return;
+    }
+    
+    if (referralValid !== true) {
+      toast.error('❌ El código de referido/promoción no es válido');
       return;
     }
 
@@ -330,10 +393,12 @@ export default function CreateService() {
                   placeholder="Ej: Carrera 7 #45-23, Bogotá"
                   value={formData.pickup_address}
                   onChange={(e) => setFormData({ ...formData, pickup_address: e.target.value })}
+                  onBlur={(e) => geocodeAddress(e.target.value, 'pickup')}
                   className="bg-black/50 border-green-500/30 text-white h-12"
                   required
                   data-testid="pickup-address-input"
                 />
+                <p className="text-slate-400 text-xs mt-1">Al escribir, el mapa se actualizará automáticamente</p>
               </div>
 
               <div className="p-4 border border-red-500/30 rounded-lg bg-red-500/5">
@@ -346,10 +411,12 @@ export default function CreateService() {
                   placeholder="Ej: Taller Mecánico XYZ, Calle 100"
                   value={formData.destination_address}
                   onChange={(e) => setFormData({ ...formData, destination_address: e.target.value })}
+                  onBlur={(e) => geocodeAddress(e.target.value, 'destination')}
                   className="bg-black/50 border-red-500/30 text-white h-12"
                   required
                   data-testid="destination-address-input"
                 />
+                <p className="text-slate-400 text-xs mt-1">Al escribir, el mapa se actualizará automáticamente</p>
               </div>
 
               {/* Valor Sugerido - Opcional */}
@@ -370,54 +437,47 @@ export default function CreateService() {
                 </p>
               </div>
 
-              {/* Código de Referido */}
-              <div className="p-4 border border-purple-500/30 rounded-lg bg-purple-500/5">
+              {/* Código de Referido/Promoción - OBLIGATORIO */}
+              <div className={`p-4 border rounded-lg ${referralValid === false ? 'border-red-500 bg-red-500/10' : 'border-purple-500/30 bg-purple-500/5'}`}>
                 <Label className="text-purple-400 mb-2 block font-bold">
-                  🎁 Código de Referido {referralLocked ? '(Asociado)' : '(Opcional)'}
+                  🎁 Código de Promoción *
                 </Label>
                 <Input
                   type="text"
-                  placeholder="Ej: ABC12345"
+                  placeholder="Ej: AB12"
                   value={formData.referral_code}
                   onChange={(e) => {
-                    if (referralLocked) return; // No permitir cambiar si está bloqueado
                     const code = e.target.value.toUpperCase();
                     setFormData({ ...formData, referral_code: code });
                     validateReferralCode(code);
                   }}
-                  disabled={referralLocked}
                   className={`bg-black/50 text-white h-12 uppercase tracking-widest ${
-                    referralLocked 
-                      ? 'border-green-500 bg-green-500/10 cursor-not-allowed opacity-70'
-                      : referralValid === true 
-                        ? 'border-green-500' 
-                        : referralValid === false 
-                          ? 'border-red-500' 
-                          : 'border-purple-500/30'
+                    referralValid === true 
+                      ? 'border-green-500' 
+                      : referralValid === false 
+                        ? 'border-red-500' 
+                        : 'border-purple-500/30'
                   }`}
-                  maxLength={8}
+                  maxLength={4}
                   data-testid="referral-code-input"
                 />
-                {referralLocked && (
+                {validatingCode && (
+                  <p className="text-slate-400 text-xs mt-2">Validando código...</p>
+                )}
+                {referralValid === true && (
                   <p className="text-green-400 text-xs mt-2 flex items-center gap-1">
                     <CheckCircle2 className="h-3 w-3" />
-                    Código de {referralOwner} asociado a tu cuenta
+                    {referralOwner}
                   </p>
                 )}
-                {!referralLocked && referralValid === true && (
-                  <p className="text-green-400 text-xs mt-2 flex items-center gap-1">
-                    <CheckCircle2 className="h-3 w-3" />
-                    Código de {referralOwner} aplicado
+                {referralValid === false && formData.referral_code.length > 0 && (
+                  <p className="text-red-400 text-xs mt-2 font-bold">
+                    ❌ Código no válido - No puedes continuar
                   </p>
                 )}
-                {!referralLocked && referralValid === false && (
-                  <p className="text-red-400 text-xs mt-2">
-                    Código no válido
-                  </p>
-                )}
-                {!referralLocked && referralValid === null && (
+                {referralValid === null && formData.referral_code === '' && (
                   <p className="text-slate-400 text-xs mt-2">
-                    Si alguien te recomendó la app, ingresa su código aquí
+                    Tu código personal te da 5% de cashback
                   </p>
                 )}
               </div>
@@ -435,11 +495,15 @@ export default function CreateService() {
 
               <Button
                 type="submit"
-                className="w-full bg-[#00e0ff] text-black hover:bg-[#33eaff] font-bold uppercase tracking-wider h-14 text-lg"
-                disabled={loading || !pickupLocation || !destinationLocation}
+                className={`w-full font-bold uppercase tracking-wider h-14 text-lg ${
+                  isFormValid() 
+                    ? 'bg-[#00e0ff] text-black hover:bg-[#33eaff]' 
+                    : 'bg-gray-500 text-gray-300 cursor-not-allowed'
+                }`}
+                disabled={loading || !isFormValid()}
                 data-testid="submit-service-button"
               >
-                {loading ? 'Publicando...' : '🚛 Solicitar Grúa'}
+                {loading ? 'Publicando...' : referralValid !== true ? '❌ Código inválido' : '🚛 Solicitar Grúa'}
               </Button>
             </form>
           </div>

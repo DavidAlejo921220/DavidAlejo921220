@@ -15,8 +15,8 @@ from websocket_manager import sio
 router = APIRouter(prefix="/referrals", tags=["Referrals"])
 
 def generate_referral_code():
-    """Genera un código de referido único de 8 caracteres"""
-    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+    """Genera un código de referido único de 4 caracteres alfanuméricos"""
+    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
 
 @router.get("/wallet")
 async def get_wallet_info(payload: dict = Depends(verify_token)):

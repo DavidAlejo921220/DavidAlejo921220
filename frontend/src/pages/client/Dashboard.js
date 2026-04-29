@@ -58,7 +58,7 @@ export default function ClientDashboard() {
   const loadServices = useCallback(async () => {
     if (!token) return;
     try {
-      const response = await axios.get(`${API}/services/client`, {
+      const response = await axios.get(`${API}/services/my-services`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setServices(response.data);

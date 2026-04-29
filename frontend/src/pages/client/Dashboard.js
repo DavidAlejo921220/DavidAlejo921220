@@ -40,13 +40,14 @@ const WHATSAPP_HELP = '+573025159176';
 
 export default function ClientDashboard() {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout, token } = useAuth();
   const { socket } = useSocket();
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [selectedService, setSelectedService] = useState(null);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
+  const [mapView, setMapView] = useState('drivers');
   const [driverLocation, setDriverLocation] = useState(null);
   const [driverInfo, setDriverInfo] = useState(null);
   const [driverVehicleInfo, setDriverVehicleInfo] = useState(null);
@@ -55,11 +56,13 @@ export default function ClientDashboard() {
   const [serviceToRate, setServiceToRate] = useState(null);
 
   const loadServices = useCallback(async () => {
+    if (!token) return;
     try {
       const response = await axios.get(`${API}/services/client`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setServices(response.data);
+      setLoading(false);
 
       const active = response.data.find(s => ['accepted', 'in_progress', 'picked_up'].includes(s.status));
       if (active) {
@@ -68,7 +71,7 @@ export default function ClientDashboard() {
         loadDriverInfo(active.driver_id);
       }
     } catch {
-      // Error silenciado
+      setLoading(false);
     }
   }, [token]);
 

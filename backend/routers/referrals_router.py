@@ -153,11 +153,13 @@ async def validate_referral_code(code: str, payload: dict = Depends(verify_token
     """Valida si un código de referido existe y es válido"""
     code = code.upper()
     
-    # No puede usar su propio código
-    current_user = await db.users.find_one({"id": payload['user_id']}, {"codigo_referido": 1, "referral_code": 1})
+    # Verificar si es su propio código (válido para CASHBACK)
+    current_user = await db.users.find_one({"id": payload['user_id']}, {"codigo_referido": 1, "referral_code": 1, "full_name": 1})
     user_code = current_user.get('codigo_referido') or current_user.get('referral_code') if current_user else None
-    if user_code == code:
-        return {"valid": False, "message": "No puedes usar tu propio código"}
+    
+    if user_code and user_code == code:
+        # Es su propio código - válido para cashback
+        return {"valid": True, "owner_name": "Tú (Cashback 5%)", "is_own_code": True}
     
     # Buscar el dueño del código (buscar en ambos campos por compatibilidad)
     owner = await db.users.find_one(
@@ -166,7 +168,7 @@ async def validate_referral_code(code: str, payload: dict = Depends(verify_token
     )
     
     if owner:
-        return {"valid": True, "owner_name": owner.get('full_name', 'Usuario')}
+        return {"valid": True, "owner_name": owner.get('full_name', 'Usuario'), "is_own_code": False}
     
     return {"valid": False, "message": "Código no encontrado"}
 

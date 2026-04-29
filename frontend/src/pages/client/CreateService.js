@@ -281,6 +281,7 @@ export default function CreateService() {
         pickup_location: pickupLocation,
         destination_location: destinationLocation,
         referral_code_used: referralValid === true ? formData.referral_code : null,
+        suggested_price: formData.suggested_price ? parseFloat(formData.suggested_price) : null,
       };
 
       await axios.post(`${API}/services/create`, serviceData);

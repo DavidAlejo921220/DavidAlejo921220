@@ -92,7 +92,7 @@ export function SocketProvider({ children }) {
       });
 
       newSocket.on('connect', () => {
-        console.log('Socket conectado');
+        // Socket conectado
         
         // Unirse a rooms según rol
         if (user.role === 'driver') {

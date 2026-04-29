@@ -41,7 +41,7 @@ export default function DriverDashboard() {
       if (error.response?.status === 404) {
         setDriverInfo(null);
       }
-      console.error('Error loading wallet:', error);
+      // Error silenciado
     } finally {
       setLoading(false);
     }
@@ -132,7 +132,7 @@ export default function DriverDashboard() {
         earnings: earnings
       });
     } catch (error) {
-      console.error('Error loading data:', error);
+      // Error silenciado
     }
   };
 

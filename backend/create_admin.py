@@ -12,15 +12,16 @@ async def create_admin():
     client = AsyncIOMotorClient(os.environ['MONGO_URL'])
     db = client[os.environ['DB_NAME']]
     
-    admin_email = "admin@gruaapp.com"
-    admin_password = "Admin2026!"
+    # Credenciales desde variables de entorno o valores por defecto seguros
+    admin_email = os.environ.get('ADMIN_EMAIL', 'admin@gruaapp.com')
+    admin_password = os.environ.get('ADMIN_PASSWORD', 'Admin2026!')
     
     # Verificar si ya existe
     existing = await db.users.find_one({"email": admin_email})
     if existing:
         print("❌ Admin ya existe")
         print(f"📧 Email: {admin_email}")
-        print(f"🔑 Password: {admin_password}")
+        print("🔑 Password: [CONFIGURADO EN VARIABLES DE ENTORNO]")
         client.close()
         return
     
@@ -44,10 +45,9 @@ async def create_admin():
     print("✅ Usuario administrador creado exitosamente!")
     print("=" * 50)
     print(f"📧 Email: {admin_email}")
-    print(f"🔑 Password: {admin_password}")
+    print("🔑 Password: [CONFIGURADO EN VARIABLES DE ENTORNO]")
     print("=" * 50)
-    print("\n⚠️  IMPORTANTE: Guarda estas credenciales de forma segura")
-    print("🔗 Accede en: https://driver-client-hub-1.preview.emergentagent.com/login")
+    print("\n⚠️  IMPORTANTE: Configura ADMIN_EMAIL y ADMIN_PASSWORD en .env")
     
     client.close()
 

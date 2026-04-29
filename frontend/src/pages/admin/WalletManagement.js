@@ -34,7 +34,7 @@ export default function WalletManagement() {
       const response = await axios.get(`${API}/admin/drivers/wallets`);
       setDrivers(response.data);
     } catch (error) {
-      console.error('Error loading wallets:', error);
+      // Error silenciado
       toast.error('Error al cargar billeteras. Verifica que hayas iniciado sesión como admin.');
     } finally {
       setLoading(false);
@@ -61,7 +61,7 @@ export default function WalletManagement() {
       setEditMode(false);
       loadDriverWallets();
     } catch (error) {
-      console.error('Recharge error:', error);
+      // Error silenciado
       toast.error(error.response?.data?.detail || 'Error al recargar. Verifica tu sesión.');
     } finally {
       setRecharging(false);
@@ -98,7 +98,7 @@ export default function WalletManagement() {
       setEditMode(false);
       loadDriverWallets();
     } catch (error) {
-      console.error('Set balance error:', error);
+      // Error silenciado
       toast.error(error.response?.data?.detail || 'Error al actualizar saldo');
     } finally {
       setRecharging(false);

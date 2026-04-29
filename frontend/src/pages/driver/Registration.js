@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { Upload, CheckCircle, AlertCircle, MessageCircle, Truck } from 'lucide-react';
 import axios from 'axios';
+import { getAuthToken } from '@/utils/auth';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -43,7 +44,7 @@ export default function DriverRegistration() {
     }
     
     try {
-      const token = localStorage.getItem('token');
+      const token = getAuthToken();
       const response = await axios.get(`${API}/referrals/validate/${code}`, {
         headers: { Authorization: `Bearer ${token}` }
       });

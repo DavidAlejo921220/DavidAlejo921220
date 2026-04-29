@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +11,7 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { getAuthToken } from '@/utils/auth';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -92,7 +93,7 @@ export default function CreateService() {
   // Cargar código PROPIO del usuario y pre-llenarlo
   const loadUserOwnCode = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getAuthToken();
       const response = await axios.get(`${API}/referrals/wallet`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -109,7 +110,7 @@ export default function CreateService() {
         setReferralOwner('Tú (Cashback 5%)');
       }
     } catch (error) {
-      console.log('Error cargando código propio');
+      // Log removido
     }
   };
 
@@ -140,7 +141,7 @@ export default function CreateService() {
         }
       }
     } catch (error) {
-      console.log('Geocoding error:', error);
+      // Log removido
     }
   };
 
@@ -212,7 +213,7 @@ export default function CreateService() {
     
     setValidatingCode(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = getAuthToken();
       const response = await axios.get(`${API}/referrals/validate/${code}`, {
         headers: { Authorization: `Bearer ${token}` }
       });

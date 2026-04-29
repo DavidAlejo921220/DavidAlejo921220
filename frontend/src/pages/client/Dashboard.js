@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSocket } from '@/contexts/SocketContext';
@@ -54,14 +54,31 @@ export default function ClientDashboard() {
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [serviceToRate, setServiceToRate] = useState(null);
 
+  const loadServices = useCallback(async () => {
+    try {
+      const response = await axios.get(`${API}/services/client`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setServices(response.data);
+
+      const active = response.data.find(s => ['accepted', 'in_progress', 'picked_up'].includes(s.status));
+      if (active) {
+        setSelectedService(active);
+        setMapView('tracking');
+        loadDriverInfo(active.driver_id);
+      }
+    } catch {
+      // Error silenciado
+    }
+  }, [token]);
+
   useEffect(() => {
-    // Verificar si ya aceptó términos
     const termsAccepted = localStorage.getItem('gruaapp_terms_accepted');
     if (!termsAccepted) {
       setShowTermsPopup(true);
     }
     loadServices();
-  }, []);
+  }, [loadServices]);
 
   useEffect(() => {
     if (socket && selectedService) {
@@ -77,17 +94,6 @@ export default function ClientDashboard() {
     }
   }, [socket, selectedService]);
 
-  const loadServices = async () => {
-    try {
-      const response = await axios.get(`${API}/services/my-services`);
-      setServices(response.data);
-    } catch (error) {
-      toast.error('Error al cargar servicios');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const loadDriverInfo = async (driverId) => {
     try {
       const response = await axios.get(`${API}/auth/users/${driverId}`);
@@ -96,8 +102,8 @@ export default function ClientDashboard() {
       // Cargar info del vehículo del conductor
       const vehicleResponse = await axios.get(`${API}/drivers/info/${driverId}`);
       setDriverVehicleInfo(vehicleResponse.data);
-    } catch (error) {
-      console.error('Error loading driver info');
+    } catch {
+      // Error silenciado
     }
   };
 
@@ -110,7 +116,7 @@ export default function ClientDashboard() {
           setShowRatingModal(true);
         }
       } catch (error) {
-        console.error('Error checking rating');
+        // Error silenciado
       }
     }
   };

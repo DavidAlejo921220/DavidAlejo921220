@@ -47,7 +47,7 @@ export default function Chat() {
       const response = await axios.get(`${API}/chat/${serviceId}`);
       setMessages(response.data);
     } catch (error) {
-      console.error('Error al cargar mensajes');
+      // Error silenciado
     }
   };
 

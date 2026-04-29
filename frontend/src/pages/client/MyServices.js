@@ -44,7 +44,7 @@ export default function MyServices() {
       const response = await axios.get(`${API}/offers/service/${serviceId}`);
       setOffers(response.data);
     } catch (error) {
-      console.error('Error al cargar ofertas');
+      // Error silenciado
     }
   };
 

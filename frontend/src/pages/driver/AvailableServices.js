@@ -44,7 +44,7 @@ export default function AvailableServices() {
       const response = await axios.get(`${API}/services/available`);
       setServices(response.data);
     } catch (error) {
-      console.error('Error al cargar servicios');
+      // Error silenciado
     }
   };
 

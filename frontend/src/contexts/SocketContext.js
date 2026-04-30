@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { io } from 'socket.io-client';
 import { useAuth } from './AuthContext';
 import { toast } from 'sonner';
@@ -7,11 +7,73 @@ const SocketContext = createContext();
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
+// Función para enviar notificación push
+const sendPushNotification = (title, options = {}) => {
+  if (!('Notification' in window)) return;
+  if (Notification.permission !== 'granted') return;
+  if (document.visibilityState === 'visible') return; // No enviar si está viendo la app
+  
+  try {
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({
+        type: 'SHOW_NOTIFICATION',
+        title,
+        options: {
+          body: options.message || options.body,
+          icon: '/logo192.png',
+          badge: '/logo192.png',
+          vibrate: [200, 100, 200],
+          tag: options.tag || `gruaapp-${Date.now()}`,
+          renotify: true,
+          data: options.data || {}
+        }
+      });
+    } else {
+      new Notification(title, {
+        body: options.message || options.body,
+        icon: '/logo192.png',
+        tag: options.tag || `gruaapp-${Date.now()}`
+      });
+    }
+  } catch {
+    // Error enviando notificación
+  }
+};
+
 export function SocketProvider({ children }) {
   const [socket, setSocket] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [pushPermission, setPushPermission] = useState('default');
   const { user } = useAuth();
+  const swRegistered = useRef(false);
+
+  // Registrar Service Worker y solicitar permisos
+  useEffect(() => {
+    if ('serviceWorker' in navigator && !swRegistered.current) {
+      swRegistered.current = true;
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+    if ('Notification' in window) {
+      setPushPermission(Notification.permission);
+    }
+  }, []);
+
+  // Solicitar permiso para notificaciones
+  const requestPushPermission = useCallback(async () => {
+    if (!('Notification' in window)) return 'denied';
+    
+    try {
+      const result = await Notification.requestPermission();
+      setPushPermission(result);
+      if (result === 'granted') {
+        toast.success('¡Notificaciones activadas! Te avisaremos de nuevos eventos.');
+      }
+      return result;
+    } catch {
+      return 'denied';
+    }
+  }, []);
 
   // Cargar notificaciones del localStorage
   useEffect(() => {
@@ -43,13 +105,20 @@ export function SocketProvider({ children }) {
     });
     setUnreadCount(prev => prev + 1);
 
-    // Mostrar toast también
+    // Mostrar toast si la app está visible
     if (notification.showToast !== false) {
       toast(notification.title, {
         description: notification.message,
         duration: 5000
       });
     }
+    
+    // Enviar notificación push si la app NO está visible
+    sendPushNotification(notification.title, {
+      message: notification.message,
+      tag: notification.type,
+      data: notification.data
+    });
   }, [user]);
 
   // Marcar como leída
@@ -237,7 +306,9 @@ export function SocketProvider({ children }) {
     addNotification,
     markAsRead,
     markAllAsRead,
-    clearAllNotifications
+    clearAllNotifications,
+    pushPermission,
+    requestPushPermission
   };
 
   return <SocketContext.Provider value={value}>{children}</SocketContext.Provider>;

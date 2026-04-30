@@ -5,6 +5,7 @@ import { Toaster } from 'sonner';
 import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { SocketProvider } from './contexts/SocketContext';
+import NotificationPermissionBanner from './components/NotificationPermissionBanner';
 
 import Landing from './pages/Landing';
 import Login from './pages/Login';
@@ -209,6 +210,7 @@ function App() {
               />
             </Routes>
             <Toaster position="top-right" theme="dark" />
+            <NotificationPermissionBanner />
           </SocketProvider>
         </AuthProvider>
       </BrowserRouter>

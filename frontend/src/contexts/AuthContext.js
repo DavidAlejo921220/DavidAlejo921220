@@ -6,30 +6,25 @@ const AuthContext = createContext();
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-// Utilidades para manejo seguro de storage
+// Utilidades para manejo de storage (localStorage para persistencia)
 const secureStorage = {
   setItem: (key, value) => {
     try {
-      const encoded = btoa(encodeURIComponent(JSON.stringify(value)));
-      sessionStorage.setItem(key, encoded);
+      localStorage.setItem(key, JSON.stringify(value));
     } catch {
-      sessionStorage.setItem(key, JSON.stringify(value));
+      // Error guardando
     }
   },
   getItem: (key) => {
     try {
-      const item = sessionStorage.getItem(key);
+      const item = localStorage.getItem(key);
       if (!item) return null;
-      return JSON.parse(decodeURIComponent(atob(item)));
+      return JSON.parse(item);
     } catch {
-      try {
-        return JSON.parse(sessionStorage.getItem(key));
-      } catch {
-        return null;
-      }
+      return localStorage.getItem(key);
     }
   },
-  removeItem: (key) => sessionStorage.removeItem(key),
+  removeItem: (key) => localStorage.removeItem(key),
 };
 
 export function AuthProvider({ children }) {

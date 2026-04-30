@@ -1,15 +1,11 @@
-// Utilidad para obtener el token de autenticación de forma segura
+// Utilidad para obtener el token de autenticación
 export const getAuthToken = () => {
   try {
-    const item = sessionStorage.getItem('token');
+    const item = localStorage.getItem('token');
     if (!item) return null;
-    return JSON.parse(decodeURIComponent(atob(item)));
+    return JSON.parse(item);
   } catch {
-    try {
-      return JSON.parse(sessionStorage.getItem('token'));
-    } catch {
-      return sessionStorage.getItem('token');
-    }
+    return localStorage.getItem('token');
   }
 };
 

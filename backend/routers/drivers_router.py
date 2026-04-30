@@ -165,6 +165,7 @@ async def get_driver_wallet(payload: dict = Depends(verify_token)):
         "low_balance_warning": balance < LOW_BALANCE_THRESHOLD,
         "transactions": transactions,
         "nequi_recharge_info": nequi_info,
+        "available": driver.get('available', False),
         "driver_info": {
             "vehicle_plate": driver.get('vehicle_plate'),
             "vehicle_type": driver.get('vehicle_type'),

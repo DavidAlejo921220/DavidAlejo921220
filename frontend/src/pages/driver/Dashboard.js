@@ -33,6 +33,16 @@ export default function DriverDashboard() {
       setWallet(response.data);
       setDriverInfo(response.data.driver_info || null);
       
+      // Cargar estado de disponibilidad desde el backend
+      if (response.data.available !== undefined) {
+        setAvailable(response.data.available);
+        
+        // Si estaba disponible, reiniciar el intervalo de ubicación
+        if (response.data.available && navigator.geolocation) {
+          startLocationTracking();
+        }
+      }
+      
       if (response.data.low_balance_warning) {
         toast.warning(`⚠️ Saldo bajo: ${formatCurrency(response.data.balance)}`, { duration: 10000 });
       }
@@ -41,10 +51,24 @@ export default function DriverDashboard() {
       if (error.response?.status === 404) {
         setDriverInfo(null);
       }
-      // Error silenciado
     } finally {
       setLoading(false);
     }
+  };
+
+  // Función para iniciar tracking de ubicación
+  const startLocationTracking = () => {
+    if (locationInterval) clearInterval(locationInterval);
+    
+    const interval = setInterval(() => {
+      navigator.geolocation.getCurrentPosition((pos) => {
+        axios.post(`${API}/drivers/availability`, {
+          available: true,
+          current_location: { lat: pos.coords.latitude, lng: pos.coords.longitude }
+        }).catch(() => {});
+      });
+    }, 15000);
+    setLocationInterval(interval);
   };
 
   const toggleAvailability = async (checked) => {
@@ -79,15 +103,7 @@ export default function DriverDashboard() {
             toast.success(checked ? '✅ Ahora estás disponible' : '⏸️ No disponible');
             
             if (checked) {
-              const interval = setInterval(() => {
-                navigator.geolocation.getCurrentPosition((pos) => {
-                  axios.post(`${API}/drivers/availability`, {
-                    available: true,
-                    current_location: { lat: pos.coords.latitude, lng: pos.coords.longitude }
-                  }).catch(err => console.error('Error updating location:', err));
-                });
-              }, 15000);
-              setLocationInterval(interval);
+              startLocationTracking();
             } else {
               if (locationInterval) {
                 clearInterval(locationInterval);

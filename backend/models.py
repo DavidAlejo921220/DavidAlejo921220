@@ -74,8 +74,15 @@ class ServiceCreate(BaseModel):
     destination_address: Optional[str] = None
     description: Optional[str] = None
     photos: Optional[List[str]] = []
-    suggested_price: Optional[float] = None  # Precio sugerido por el cliente (opcional)
-    referral_code_used: Optional[str] = None  # Código de referido usado (opcional)
+    suggested_price: Optional[float] = None
+    referral_code_used: Optional[str] = None
+    # Campos para carga especial
+    service_type: Optional[str] = "vehiculo"  # vehiculo, carga_especial, trasteo
+    cargo_weight_kg: Optional[float] = None  # Peso en kg
+    cargo_dimensions: Optional[str] = None  # "largo x ancho x alto"
+    requires_insurance: Optional[bool] = False
+    requires_manifest: Optional[bool] = False
+    cargo_description: Optional[str] = None  # Descripción de la carga
 
 class ServiceResponse(BaseModel):
     id: str

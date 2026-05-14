@@ -5,12 +5,34 @@ import { Button } from '@/components/ui/button';
 import { 
   Truck, Shield, Zap, Users, MapPin, MessageCircle, 
   Clock, Star, DollarSign, Navigation, History, Phone,
-  CheckCircle, ArrowRight
+  CheckCircle, ArrowRight, Package, Weight, FileText
 } from 'lucide-react';
 
 export default function Landing() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('clients');
+
+  // SEO Keywords
+  const seoKeywords = [
+    "Grúas en Bogotá",
+    "Servicio de grúa 24 horas",
+    "Grúas baratas Colombia",
+    "Transporte de vehículos",
+    "Grúa para carros",
+    "Trasteos Bogotá",
+    "Transporte de carga pesada",
+    "Maquinaria y estructuras",
+    "Viajes de Bogotá a todo el país",
+    "Carga especial con seguro",
+    "Manifiesto de carga"
+  ];
+
+  const services = [
+    { icon: Truck, title: "Grúas para vehículos", desc: "Carros, motos, camionetas en Bogotá y todo Colombia" },
+    { icon: Package, title: "Trasteos", desc: "Mudanzas locales y nacionales con seguro" },
+    { icon: Weight, title: "Carga pesada", desc: "Maquinaria, estructuras metálicas hasta 30 toneladas" },
+    { icon: FileText, title: "Carga especial", desc: "Con manifiesto, seguro y dimensiones especiales" }
+  ];
 
   const clientFeatures = [
     {
@@ -101,23 +123,27 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-[#0a1120] overflow-x-hidden">
       <Helmet>
-        <title>GruaApp | Servicio de Grúa en Bogotá 24 Horas</title>
-        <meta name="description" content="Servicio de grúas en Bogotá 24 horas. Atención inmediata, precios económicos y cobertura total. Solicita tu grúa ahora." />
+        <title>GruaApp | Servicio de Grúa en Bogotá y Todo Colombia 24 Horas | 5% Descuento</title>
+        <meta name="description" content="Servicio de grúas en Bogotá y todo el país 24 horas. Transporte de vehículos, trasteos, maquinaria y carga pesada. ¡5% de descuento en tu primer servicio! Seguro y manifiesto incluido." />
+        <meta name="keywords" content="grúas bogotá, grúa 24 horas, transporte vehículos, trasteos bogotá, carga pesada, maquinaria, grúas baratas, servicio grúa colombia, transporte nacional, carga especial seguro manifiesto" />
         <link rel="canonical" href="https://gruaapp.com/" />
+        <meta property="og:title" content="GruaApp - Grúas y Transporte en Colombia | 5% Descuento" />
+        <meta property="og:description" content="Solicita grúa en segundos. Vehículos, trasteos, maquinaria y carga pesada. Bogotá y todo el país." />
       </Helmet>
       
-      {/* H1 SEO Invisible */}
-      <h1 className="sr-only">Servicio de grúa en Bogotá 24 horas</h1>
+      {/* H1 SEO */}
+      <h1 className="sr-only">Servicio de Grúa en Bogotá y Todo Colombia - Transporte de Vehículos, Trasteos y Carga Pesada 24 Horas</h1>
       
       {/* SEO Keywords - Hidden */}
       <div className="sr-only" aria-hidden="true">
-        <h2>Servicios de Grúa en Bogotá</h2>
-        <p>grúas en Bogotá, grúas 24 horas Bogotá, servicio de grúa Bogotá, grúa urgente Bogotá, grúas baratas Bogotá</p>
-        <h2>Servicio de Grúa Urgente en Bogotá 24 Horas</h2>
-        <p>servicio de grúa urgente en Bogotá 24 horas, cuánto cuesta una grúa en Bogotá, grúas económicas en Bogotá precios</p>
-        <h2>Grúas por Localidades</h2>
-        <p>grúas en Suba, grúas en Chapinero, grúas en Usaquén, grúas en Kennedy, grúas en Engativá</p>
-        <p>Prestamos servicio de grúas en Bogotá con atención inmediata las 24 horas.</p>
+        <h2>Servicios de Grúa en Bogotá y Colombia</h2>
+        <p>grúas en Bogotá, grúas 24 horas, servicio de grúa urgente, grúas baratas, transporte de vehículos nacional</p>
+        <h2>Transporte de Carga Especial</h2>
+        <p>trasteos Bogotá, mudanzas nacionales, transporte maquinaria, carga pesada, estructuras metálicas, con seguro y manifiesto</p>
+        <h2>Cobertura Nacional</h2>
+        <p>viajes de Bogotá a Medellín, Cali, Barranquilla, Cartagena, Bucaramanga y todo el país</p>
+        <h2>Promoción 5% Descuento</h2>
+        <p>5% de descuento cashback en tu primer servicio de grúa, trasteo o transporte de carga</p>
       </div>
 
       {/* Hero Section */}
@@ -157,10 +183,26 @@ export default function Landing() {
             <span className="block text-[#00e0ff] mt-2 text-3xl sm:text-4xl md:text-5xl">Tu Grúa en Minutos</span>
           </div>
           
-          <p className="text-base sm:text-xl text-slate-300 mb-8 sm:mb-12 max-w-2xl mx-auto leading-relaxed px-4">
-            La forma más rápida de conseguir grúa en Bogotá. 
-            Compara precios, elige la mejor oferta y ahorra dinero.
+          {/* Banner Cashback */}
+          <div className="inline-block bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/50 rounded-full px-6 py-2 mb-6">
+            <span className="text-green-400 font-bold">🎉 ¡5% CASHBACK en tu primer servicio!</span>
+          </div>
+          
+          <p className="text-base sm:text-xl text-slate-300 mb-6 max-w-3xl mx-auto leading-relaxed px-4">
+            Servicio de grúas en <strong className="text-white">Bogotá y todo Colombia</strong>. 
+            Transporte de vehículos, trasteos, maquinaria y carga pesada 24/7.
           </p>
+
+          {/* Servicios destacados */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-4xl mx-auto mb-8">
+            {services.map((service, idx) => (
+              <div key={idx} className="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
+                <service.icon className="h-6 w-6 text-[#00e0ff] mx-auto mb-2" />
+                <p className="text-white text-sm font-semibold">{service.title}</p>
+                <p className="text-slate-400 text-xs">{service.desc}</p>
+              </div>
+            ))}
+          </div>
           
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4">
             <Button 
@@ -182,6 +224,11 @@ export default function Landing() {
               Soy Conductor
             </Button>
           </div>
+
+          {/* Cobertura Nacional */}
+          <p className="text-slate-400 text-sm mt-6">
+            📍 Cobertura: Bogotá, Medellín, Cali, Barranquilla, Cartagena y todo Colombia
+          </p>
         </div>
       </div>
 
@@ -192,7 +239,7 @@ export default function Landing() {
             ¿Cómo funciona GruaApp?
           </h2>
           <p className="text-slate-400 text-sm sm:text-base max-w-2xl mx-auto px-4">
-            La plataforma que conecta clientes con conductores de grúa verificados en Bogotá
+            La plataforma que conecta clientes con conductores de grúa verificados en Colombia
           </p>
         </div>
 

@@ -36,6 +36,17 @@ async def create_service(data: ServiceCreate, payload: dict = Depends(verify_tok
         'vehicle_type': service_dict['vehicle_type']
     }, room='drivers')
     
+    # Notificar por email a TODOS los conductores disponibles
+    drivers = await db.drivers.find({"available": True}, {"_id": 0, "user_id": 1}).to_list(100)
+    for driver in drivers:
+        driver_user = await db.users.find_one({"id": driver['user_id']}, {"_id": 0, "email": 1})
+        if driver_user and driver_user.get('email'):
+            await notify_driver_new_service(
+                driver_user['email'],
+                service_dict.get('vehicle_type', 'Vehículo'),
+                service_dict.get('pickup_address', 'Ver en la app')
+            )
+    
     return ServiceResponse(**service_dict)
 
 @router.get("/available", response_model=list[ServiceResponse])
@@ -218,3 +229,32 @@ async def update_service_status(service_id: str, data: ServiceStatusUpdate, payl
         await notify_client_status_change(client['email'], data.status, driver_name)
     
     return {"message": "Estado actualizado"}
+
+
+
+@router.delete("/{service_id}", response_model=dict)
+async def cancel_service(service_id: str, payload: dict = Depends(verify_token)):
+    """Cliente cancela servicio (solo antes de aceptar oferta) o Admin elimina"""
+    service = await db.services.find_one({"id": service_id}, {"_id": 0})
+    if not service:
+        raise HTTPException(status_code=404, detail="Servicio no encontrado")
+    
+    # Admin puede eliminar cualquier servicio no completado
+    if payload['role'] == 'admin':
+        if service['status'] == 'completed':
+            raise HTTPException(status_code=400, detail="No se puede eliminar un servicio completado")
+        await db.services.delete_one({"id": service_id})
+        await db.offers.delete_many({"service_id": service_id})
+        return {"message": "Servicio eliminado por administrador"}
+    
+    # Cliente solo puede cancelar si es suyo y no ha sido aceptado
+    if service['client_id'] != payload['user_id']:
+        raise HTTPException(status_code=403, detail="No autorizado")
+    
+    if service['status'] in ['accepted', 'in_progress', 'picked_up', 'completed']:
+        raise HTTPException(status_code=400, detail="No puedes cancelar un servicio que ya fue aceptado")
+    
+    await db.services.update_one({"id": service_id}, {"$set": {"status": "cancelled"}})
+    await db.offers.update_many({"service_id": service_id}, {"$set": {"status": "cancelled"}})
+    
+    return {"message": "Servicio cancelado"}

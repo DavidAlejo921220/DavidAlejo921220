@@ -263,3 +263,34 @@ async def reject_driver(driver_id: str, payload: dict = Depends(verify_token)):
     await db.drivers.delete_one({"user_id": driver_id})
     
     return {"message": "Solicitud de conductor rechazada"}
+
+
+
+@router.put("/users/{user_id}", response_model=dict)
+async def update_user(user_id: str, data: dict, payload: dict = Depends(verify_token)):
+    """Admin edita datos de un usuario (email, nombre, teléfono)"""
+    if payload['role'] != 'admin':
+        raise HTTPException(status_code=403, detail="Solo administradores")
+    
+    user = await db.users.find_one({"id": user_id}, {"_id": 0})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    
+    # Campos permitidos para editar
+    allowed_fields = ['email', 'full_name', 'phone', 'status']
+    update_data = {k: v for k, v in data.items() if k in allowed_fields and v is not None}
+    
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No hay campos válidos para actualizar")
+    
+    # Si cambia el email, verificar que no exista otro usuario con ese email
+    if 'email' in update_data and update_data['email'] != user.get('email'):
+        existing = await db.users.find_one({"email": update_data['email']}, {"_id": 0})
+        if existing:
+            raise HTTPException(status_code=400, detail="Ya existe un usuario con ese email")
+    
+    update_data['updated_at'] = datetime.now(timezone.utc).isoformat()
+    
+    await db.users.update_one({"id": user_id}, {"$set": update_data})
+    
+    return {"message": "Usuario actualizado", "updated_fields": list(update_data.keys())}

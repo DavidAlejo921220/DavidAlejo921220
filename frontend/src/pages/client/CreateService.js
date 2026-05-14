@@ -66,7 +66,7 @@ export default function CreateService() {
   const [loading, setLoading] = useState(false);
   const [pickupLocation, setPickupLocation] = useState(null);
   const [destinationLocation, setDestinationLocation] = useState(null);
-  const [currentStep, setCurrentStep] = useState(1); // Pasos guiados: 1, 2, 3, 4
+  const [currentStep, setCurrentStep] = useState('pickup'); // 'pickup' o 'destination'
   const [mapCenter, setMapCenter] = useState(COLOMBIA_CENTER);
   const [mapKey, setMapKey] = useState(0);
   const [formData, setFormData] = useState({
@@ -91,14 +91,6 @@ export default function CreateService() {
   const [referralOwner, setReferralOwner] = useState('');
   const [myOwnCode, setMyOwnCode] = useState('');
   const [validatingCode, setValidatingCode] = useState(false);
-
-  // Pasos del formulario
-  const steps = [
-    { num: 1, title: 'Tipo de Servicio', icon: '🚛' },
-    { num: 2, title: 'Recogida', icon: '📍' },
-    { num: 3, title: 'Destino', icon: '🏁' },
-    { num: 4, title: 'Confirmar', icon: '✅' },
-  ];
 
   useEffect(() => {
     getUserLocation();

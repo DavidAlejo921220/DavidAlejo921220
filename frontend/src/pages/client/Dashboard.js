@@ -98,12 +98,17 @@ export default function ClientDashboard() {
   }, [socket, selectedService]);
 
   const loadDriverInfo = async (driverId) => {
+    if (!driverId || !token) return;
     try {
-      const response = await axios.get(`${API}/auth/users/${driverId}`);
+      const response = await axios.get(`${API}/auth/users/${driverId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setDriverInfo(response.data);
       
       // Cargar info del vehículo del conductor
-      const vehicleResponse = await axios.get(`${API}/drivers/info/${driverId}`);
+      const vehicleResponse = await axios.get(`${API}/drivers/info/${driverId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setDriverVehicleInfo(vehicleResponse.data);
     } catch {
       // Error silenciado
@@ -111,9 +116,11 @@ export default function ClientDashboard() {
   };
 
   const checkAndShowRating = async (service) => {
-    if (service.status === 'completed' && service.driver_id) {
+    if (service.status === 'completed' && service.driver_id && token) {
       try {
-        const response = await axios.get(`${API}/ratings/service/${service.id}/check`);
+        const response = await axios.get(`${API}/ratings/service/${service.id}/check`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
         if (!response.data.rated) {
           setServiceToRate(service);
           setShowRatingModal(true);

@@ -9,7 +9,7 @@ from database import db
 from auth import verify_token
 from models import ServiceCreate, ServiceResponse, ServiceStatusUpdate
 from websocket_manager import sio
-from utils import calculate_distance
+from utils import calculate_distance, notify_client_status_change, notify_driver_new_service
 
 router = APIRouter(prefix="/services", tags=["Services"])
 
@@ -208,5 +208,13 @@ async def update_service_status(service_id: str, data: ServiceStatusUpdate, payl
         await _process_client_referral_commission(service, final_price)
     
     await sio.emit('status_updated', {"service_id": service_id, "status": data.status}, room=f'service_{service_id}')
+    
+    # Enviar email al cliente sobre el cambio de estado
+    client = await db.users.find_one({"id": service['client_id']}, {"_id": 0, "email": 1})
+    driver = await db.users.find_one({"id": service.get('driver_id')}, {"_id": 0, "full_name": 1}) if service.get('driver_id') else None
+    driver_name = driver.get('full_name') if driver else None
+    
+    if client and client.get('email'):
+        await notify_client_status_change(client['email'], data.status, driver_name)
     
     return {"message": "Estado actualizado"}

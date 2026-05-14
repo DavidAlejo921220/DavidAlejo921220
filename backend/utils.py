@@ -209,3 +209,125 @@ def calculate_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> fl
     c = 2 * asin(sqrt(a))
     
     return R * c
+
+
+# ============ NOTIFICACIONES POR EMAIL ============
+
+async def send_notification_email(to_email: str, subject: str, title: str, message: str, action_url: str = None, action_text: str = "Ver en GruaApp"):
+    """Envía email de notificación usando Resend"""
+    resend.api_key = os.environ.get('RESEND_API_KEY')
+    sender_email = os.environ.get('SENDER_EMAIL', 'onboarding@resend.dev')
+    app_url = "https://driver-client-hub-1.preview.emergentagent.com"
+    
+    if not resend.api_key or resend.api_key == 'your_resend_api_key_here':
+        logger.info(f"[EMAIL] {subject} -> {to_email}: {message}")
+        return True
+    
+    action_button = ""
+    if action_url:
+        action_button = f'''
+        <a href="{action_url}" style="display: inline-block; background-color: #00e0ff; color: #000000; font-weight: bold; padding: 15px 30px; text-decoration: none; border-radius: 8px; margin-top: 20px;">{action_text}</a>
+        '''
+    
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body {{ font-family: Arial, sans-serif; background-color: #0a1120; color: #ffffff; padding: 20px; margin: 0; }}
+            .container {{ max-width: 600px; margin: 0 auto; background-color: #111827; border-radius: 12px; padding: 40px; }}
+            h1 {{ color: #00e0ff; font-size: 24px; margin-bottom: 10px; }}
+            .message {{ background-color: #1e293b; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #00e0ff; }}
+            p {{ color: #94a3b8; line-height: 1.6; margin: 10px 0; }}
+            .footer {{ text-align: center; margin-top: 30px; color: #64748b; font-size: 12px; }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>🚛 {title}</h1>
+            <div class="message">
+                <p style="color: #ffffff; font-size: 16px;">{message}</p>
+            </div>
+            <div style="text-align: center;">
+                {action_button}
+            </div>
+            <div class="footer">
+                <p>GruaApp - Tu servicio de grúas en Colombia</p>
+                <p><a href="{app_url}" style="color: #00e0ff;">gruaapp.com</a></p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    
+    try:
+        params = {
+            "from": f"GruaApp <{sender_email}>",
+            "to": [to_email],
+            "subject": f"🚛 {subject}",
+            "html": html_content
+        }
+        await asyncio.to_thread(resend.Emails.send, params)
+        logger.info(f"Email enviado a {to_email}: {subject}")
+        return True
+    except Exception as e:
+        logger.error(f"Error enviando email: {e}")
+        return False
+
+
+async def notify_client_new_offer(client_email: str, driver_name: str, price: float, service_id: str):
+    """Notifica al cliente que recibió una nueva oferta"""
+    await send_notification_email(
+        to_email=client_email,
+        subject="Nueva oferta para tu servicio",
+        title="¡Tienes una nueva oferta!",
+        message=f"El conductor {driver_name} te ha enviado una oferta de ${price:,.0f} COP para tu servicio de grúa.",
+        action_url=f"https://driver-client-hub-1.preview.emergentagent.com/client/services/{service_id}/offers",
+        action_text="Ver Oferta"
+    )
+
+
+async def notify_client_status_change(client_email: str, status: str, driver_name: str = None):
+    """Notifica al cliente cambios en el estado del servicio"""
+    status_messages = {
+        "accepted": ("¡Tu servicio fue aceptado!", f"El conductor {driver_name or 'asignado'} está en camino para recoger tu vehículo."),
+        "in_progress": ("Conductor en camino", f"{driver_name or 'El conductor'} va en camino a la ubicación de recogida."),
+        "picked_up": ("¡Vehículo recogido!", "Tu vehículo ha sido recogido y está siendo transportado al destino."),
+        "completed": ("¡Servicio completado!", "Tu servicio de grúa ha sido completado exitosamente. ¡Gracias por usar GruaApp!"),
+        "cancelled": ("Servicio cancelado", "Tu servicio ha sido cancelado.")
+    }
+    
+    title, message = status_messages.get(status, ("Actualización de servicio", f"El estado de tu servicio cambió a: {status}"))
+    
+    await send_notification_email(
+        to_email=client_email,
+        subject=title,
+        title=title,
+        message=message,
+        action_url="https://driver-client-hub-1.preview.emergentagent.com/client/dashboard",
+        action_text="Ver mi servicio"
+    )
+
+
+async def notify_driver_new_service(driver_email: str, vehicle_type: str, pickup_address: str):
+    """Notifica al conductor que hay un nuevo servicio disponible"""
+    await send_notification_email(
+        to_email=driver_email,
+        subject="Nuevo servicio disponible",
+        title="¡Hay un nuevo servicio cerca!",
+        message=f"Un cliente necesita grúa para un {vehicle_type}. Ubicación: {pickup_address}",
+        action_url="https://driver-client-hub-1.preview.emergentagent.com/driver/available",
+        action_text="Ver Servicio"
+    )
+
+
+async def notify_driver_offer_accepted(driver_email: str, price: float, pickup_address: str):
+    """Notifica al conductor que su oferta fue aceptada"""
+    await send_notification_email(
+        to_email=driver_email,
+        subject="¡Tu oferta fue aceptada!",
+        title="¡Felicidades! Tu oferta fue aceptada",
+        message=f"El cliente aceptó tu oferta de ${price:,.0f} COP. Dirígete a: {pickup_address}",
+        action_url="https://driver-client-hub-1.preview.emergentagent.com/driver/services",
+        action_text="Ver Servicio"
+    )

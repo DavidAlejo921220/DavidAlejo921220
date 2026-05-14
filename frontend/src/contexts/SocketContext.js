@@ -9,34 +9,47 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
 // Función para enviar notificación push
 const sendPushNotification = (title, options = {}) => {
+  // Verificar soporte
+  if (typeof window === 'undefined') return;
   if (!('Notification' in window)) return;
   if (Notification.permission !== 'granted') return;
-  if (document.visibilityState === 'visible') return; // No enviar si está viendo la app
   
   try {
+    // Intentar usar Service Worker primero
     if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
       navigator.serviceWorker.controller.postMessage({
         type: 'SHOW_NOTIFICATION',
         title,
         options: {
-          body: options.message || options.body,
+          body: options.message || options.body || '',
           icon: '/logo192.png',
           badge: '/logo192.png',
           vibrate: [200, 100, 200],
           tag: options.tag || `gruaapp-${Date.now()}`,
           renotify: true,
+          requireInteraction: true,
           data: options.data || {}
         }
       });
     } else {
+      // Fallback a Notification API directa
       new Notification(title, {
-        body: options.message || options.body,
+        body: options.message || options.body || '',
         icon: '/logo192.png',
-        tag: options.tag || `gruaapp-${Date.now()}`
+        tag: options.tag || `gruaapp-${Date.now()}`,
+        requireInteraction: true
       });
     }
-  } catch {
-    // Error enviando notificación
+  } catch (err) {
+    // Intentar con Notification directa como último recurso
+    try {
+      new Notification(title, {
+        body: options.message || options.body || '',
+        icon: '/logo192.png'
+      });
+    } catch {
+      // No se pudo enviar notificación
+    }
   }
 };
 
@@ -105,7 +118,7 @@ export function SocketProvider({ children }) {
     });
     setUnreadCount(prev => prev + 1);
 
-    // Mostrar toast si la app está visible
+    // Mostrar toast en la app
     if (notification.showToast !== false) {
       toast(notification.title, {
         description: notification.message,
@@ -113,7 +126,8 @@ export function SocketProvider({ children }) {
       });
     }
     
-    // Enviar notificación push si la app NO está visible
+    // SIEMPRE enviar notificación push (incluso si la app está visible)
+    // para que funcione con el cel bloqueado
     sendPushNotification(notification.title, {
       message: notification.message,
       tag: notification.type,

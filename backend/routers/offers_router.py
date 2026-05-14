@@ -10,6 +10,7 @@ from auth import verify_token
 from models import OfferCreate, OfferResponse
 from websocket_manager import sio
 from config import DEFAULT_COMMISSION_RATE, LOW_BALANCE_THRESHOLD
+from utils import notify_client_new_offer, notify_driver_offer_accepted
 
 router = APIRouter(prefix="/offers", tags=["Offers"])
 
@@ -22,6 +23,13 @@ async def create_offer(data: OfferCreate, payload: dict = Depends(verify_token))
     service = await db.services.find_one({"id": data.service_id}, {"_id": 0})
     if not service:
         raise HTTPException(status_code=404, detail="Servicio no encontrado")
+    
+    # Obtener info del conductor para el email
+    driver = await db.users.find_one({"id": payload['user_id']}, {"_id": 0, "full_name": 1})
+    driver_name = driver.get('full_name', 'Conductor') if driver else 'Conductor'
+    
+    # Obtener email del cliente
+    client = await db.users.find_one({"id": service['client_id']}, {"_id": 0, "email": 1})
     
     offer_dict = {
         "id": str(uuid.uuid4()),
@@ -37,6 +45,10 @@ async def create_offer(data: OfferCreate, payload: dict = Depends(verify_token))
     await db.services.update_one({"id": data.service_id}, {"$set": {"status": "negotiating"}})
     
     await sio.emit('new_offer', offer_dict, room=f'service_{data.service_id}')
+    
+    # Enviar email al cliente
+    if client and client.get('email'):
+        await notify_client_new_offer(client['email'], driver_name, data.price, data.service_id)
     
     return OfferResponse(**offer_dict)
 
@@ -113,6 +125,15 @@ async def accept_offer(offer_id: str, payload: dict = Depends(verify_token)):
         "needs_recharge": new_balance < LOW_BALANCE_THRESHOLD,
         "transaction": transaction
     }, room=f'driver_{offer["driver_id"]}')
+    
+    # Enviar email al conductor que su oferta fue aceptada
+    driver = await db.users.find_one({"id": offer['driver_id']}, {"_id": 0, "email": 1})
+    if driver and driver.get('email'):
+        await notify_driver_offer_accepted(
+            driver['email'], 
+            offer['price'], 
+            service.get('pickup_address', 'Ver en la app')
+        )
     
     return {
         "message": "Oferta aceptada",

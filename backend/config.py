@@ -22,7 +22,7 @@ CORS_ORIGINS = os.environ.get('CORS_ORIGINS', '*').split(',')
 
 # External Services
 RESEND_API_KEY = os.environ.get('RESEND_API_KEY')
-SENDER_EMAIL = os.environ.get('SENDER_EMAIL', 'onboarding@resend.dev')
+SENDER_EMAIL = os.environ.get('SENDER_EMAIL', 'notificaciones@gruaapp.com')
 
 # Cloudinary
 CLOUDINARY_CLOUD_NAME = os.environ.get('CLOUDINARY_CLOUD_NAME')

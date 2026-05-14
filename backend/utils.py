@@ -12,7 +12,7 @@ def generate_otp() -> str:
 async def send_otp_email(email: str, otp_code: str):
     """Envía OTP por email usando Resend"""
     resend.api_key = os.environ.get('RESEND_API_KEY')
-    sender_email = os.environ.get('SENDER_EMAIL', 'onboarding@resend.dev')
+    sender_email = os.environ.get('SENDER_EMAIL', 'notificaciones@gruaapp.com')
     
     # Si no hay API key, solo loguear (modo desarrollo)
     if not resend.api_key or resend.api_key == 'your_resend_api_key_here':
@@ -79,7 +79,7 @@ async def send_otp_email(email: str, otp_code: str):
 async def send_driver_documents_email(driver_data: dict, user_data: dict):
     """Envía los documentos del conductor al admin por email usando Resend"""
     resend.api_key = os.environ.get('RESEND_API_KEY')
-    sender_email = os.environ.get('SENDER_EMAIL', 'onboarding@resend.dev')
+    sender_email = os.environ.get('SENDER_EMAIL', 'notificaciones@gruaapp.com')
     admin_email = "gruaap3@gmail.com"
     
     # Si no hay API key, solo loguear
@@ -216,8 +216,10 @@ def calculate_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> fl
 async def send_notification_email(to_email: str, subject: str, title: str, message: str, action_url: str = None, action_text: str = "Ver en GruaApp"):
     """Envía email de notificación usando Resend"""
     resend.api_key = os.environ.get('RESEND_API_KEY')
-    sender_email = os.environ.get('SENDER_EMAIL', 'onboarding@resend.dev')
-    app_url = "https://driver-client-hub-1.preview.emergentagent.com"
+    sender_email = os.environ.get('SENDER_EMAIL', 'notificaciones@gruaapp.com')
+    app_url = "https://gruaapp.com"
+    
+    print(f"[EMAIL DEBUG] API Key: {resend.api_key[:10]}... | From: {sender_email} | To: {to_email}")
     
     if not resend.api_key or resend.api_key == 'your_resend_api_key_here':
         logger.info(f"[EMAIL] {subject} -> {to_email}: {message}")
@@ -261,16 +263,20 @@ async def send_notification_email(to_email: str, subject: str, title: str, messa
     """
     
     try:
+        from_address = f"GruaApp <{sender_email}>"
         params = {
-            "from": f"GruaApp <{sender_email}>",
+            "from": from_address,
             "to": [to_email],
             "subject": f"🚛 {subject}",
             "html": html_content
         }
-        await asyncio.to_thread(resend.Emails.send, params)
+        print(f"[EMAIL DEBUG] Enviando con from='{from_address}' to='{to_email}'")
+        result = await asyncio.to_thread(resend.Emails.send, params)
+        print(f"[EMAIL DEBUG] Resultado: {result}")
         logger.info(f"Email enviado a {to_email}: {subject}")
         return True
     except Exception as e:
+        print(f"[EMAIL DEBUG] ERROR: {e}")
         logger.error(f"Error enviando email: {e}")
         return False
 

@@ -286,11 +286,23 @@ export default function CreateService() {
     try {
       const token = getAuthToken();
       const serviceData = {
-        ...formData,
+        vehicle_type: formData.vehicle_type,
+        vehicle_brand: formData.vehicle_brand,
+        vehicle_model: formData.vehicle_model,
+        vehicle_condition: formData.vehicle_condition,
+        pickup_address: formData.pickup_address,
+        destination_address: formData.destination_address,
+        description: formData.description || '',
         pickup_location: pickupLocation,
         destination_location: destinationLocation,
         referral_code_used: referralValid === true ? formData.referral_code : null,
         suggested_price: formData.suggested_price ? parseFloat(formData.suggested_price) : null,
+        service_type: formData.service_type || 'vehiculo',
+        cargo_weight_kg: formData.cargo_weight_kg ? parseFloat(formData.cargo_weight_kg) : null,
+        cargo_dimensions: formData.cargo_dimensions || null,
+        requires_insurance: formData.requires_insurance || false,
+        requires_manifest: formData.requires_manifest || false,
+        cargo_description: formData.cargo_description || null,
       };
 
       await axios.post(`${API}/services/create`, serviceData, {
@@ -299,7 +311,14 @@ export default function CreateService() {
       toast.success('✅ ¡Servicio publicado! Pronto recibirás ofertas de conductores.');
       navigate('/client/dashboard');
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Error al crear servicio');
+      const errorDetail = error.response?.data?.detail;
+      if (typeof errorDetail === 'string') {
+        toast.error(errorDetail);
+      } else if (Array.isArray(errorDetail)) {
+        toast.error(errorDetail[0]?.msg || 'Error al crear servicio');
+      } else {
+        toast.error('Error al crear servicio');
+      }
     } finally {
       setLoading(false);
     }

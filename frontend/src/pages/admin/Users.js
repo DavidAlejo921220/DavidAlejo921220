@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Ban, Search } from 'lucide-react';
+import { ArrowLeft, Ban, Search, CheckCircle, Pencil, X } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
 
@@ -16,6 +16,9 @@ export default function UsersManagement() {
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const [editModal, setEditModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [editForm, setEditForm] = useState({ full_name: '', email: '', phone: '' });
 
   useEffect(() => {
     loadUsers();
@@ -53,6 +56,39 @@ export default function UsersManagement() {
       loadUsers();
     } catch (error) {
       toast.error('Error al bloquear usuario');
+    }
+  };
+
+  const handleUnblockUser = async (userId) => {
+    try {
+      await axios.post(`${API}/admin/users/${userId}/unblock`);
+      toast.success('Usuario desbloqueado');
+      loadUsers();
+    } catch (error) {
+      toast.error('Error al desbloquear usuario');
+    }
+  };
+
+  const openEditModal = (user) => {
+    setSelectedUser(user);
+    setEditForm({
+      full_name: user.full_name || '',
+      email: user.email || '',
+      phone: user.phone || ''
+    });
+    setEditModal(true);
+  };
+
+  const handleEditSubmit = async () => {
+    if (!selectedUser) return;
+    try {
+      await axios.put(`${API}/admin/users/${selectedUser.id}`, editForm);
+      toast.success('Usuario actualizado');
+      setEditModal(false);
+      setSelectedUser(null);
+      loadUsers();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Error al actualizar usuario');
     }
   };
 
@@ -138,18 +174,44 @@ export default function UsersManagement() {
                         {user.reputation_score.toFixed(1)} ⭐
                       </td>
                       <td className="py-4 px-4">
-                        {user.status === 'active' && user.role !== 'admin' && (
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => handleBlockUser(user.id)}
-                            className="bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20"
-                            data-testid={`block-button-${user.id}`}
-                          >
-                            <Ban className="h-4 w-4 mr-1" />
-                            Bloquear
-                          </Button>
-                        )}
+                        <div className="flex gap-2 flex-wrap">
+                          {user.role !== 'admin' && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => openEditModal(user)}
+                              className="bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border border-blue-500/20"
+                              data-testid={`edit-button-${user.id}`}
+                            >
+                              <Pencil className="h-4 w-4 mr-1" />
+                              Editar
+                            </Button>
+                          )}
+                          {user.status === 'active' && user.role !== 'admin' && (
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => handleBlockUser(user.id)}
+                              className="bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20"
+                              data-testid={`block-button-${user.id}`}
+                            >
+                              <Ban className="h-4 w-4 mr-1" />
+                              Bloquear
+                            </Button>
+                          )}
+                          {user.status === 'blocked' && user.role !== 'admin' && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleUnblockUser(user.id)}
+                              className="bg-green-500/10 text-green-400 hover:bg-green-500/20 border border-green-500/20"
+                              data-testid={`unblock-button-${user.id}`}
+                            >
+                              <CheckCircle className="h-4 w-4 mr-1" />
+                              Desbloquear
+                            </Button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -159,6 +221,72 @@ export default function UsersManagement() {
           )}
         </div>
       </div>
+
+      {/* Modal de Edición */}
+      {editModal && selectedUser && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-[#111827] rounded-xl p-6 w-full max-w-md border border-white/10">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-white">Editar Usuario</h2>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setEditModal(false)}
+                className="text-slate-400 hover:text-white"
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm text-slate-400 mb-1">Nombre Completo</label>
+                <Input
+                  value={editForm.full_name}
+                  onChange={(e) => setEditForm({...editForm, full_name: e.target.value})}
+                  className="bg-black/50 border-white/10 text-white"
+                  data-testid="edit-fullname-input"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-slate-400 mb-1">Email</label>
+                <Input
+                  value={editForm.email}
+                  onChange={(e) => setEditForm({...editForm, email: e.target.value})}
+                  className="bg-black/50 border-white/10 text-white"
+                  data-testid="edit-email-input"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-slate-400 mb-1">Teléfono</label>
+                <Input
+                  value={editForm.phone}
+                  onChange={(e) => setEditForm({...editForm, phone: e.target.value})}
+                  className="bg-black/50 border-white/10 text-white"
+                  data-testid="edit-phone-input"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <Button
+                variant="outline"
+                onClick={() => setEditModal(false)}
+                className="flex-1 border-white/10 text-slate-400"
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleEditSubmit}
+                className="flex-1 bg-[#00e0ff] text-black hover:bg-[#00c4dd]"
+                data-testid="save-edit-button"
+              >
+                Guardar Cambios
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

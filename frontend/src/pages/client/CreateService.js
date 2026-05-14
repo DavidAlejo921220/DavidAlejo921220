@@ -284,6 +284,7 @@ export default function CreateService() {
 
     setLoading(true);
     try {
+      const token = getAuthToken();
       const serviceData = {
         ...formData,
         pickup_location: pickupLocation,
@@ -292,7 +293,9 @@ export default function CreateService() {
         suggested_price: formData.suggested_price ? parseFloat(formData.suggested_price) : null,
       };
 
-      await axios.post(`${API}/services/create`, serviceData);
+      await axios.post(`${API}/services/create`, serviceData, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       toast.success('✅ ¡Servicio publicado! Pronto recibirás ofertas de conductores.');
       navigate('/client/dashboard');
     } catch (error) {

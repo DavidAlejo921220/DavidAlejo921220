@@ -36,9 +36,9 @@ async def create_service(data: ServiceCreate, payload: dict = Depends(verify_tok
         'vehicle_type': service_dict['vehicle_type']
     }, room='drivers')
     
-    # Notificar por email a TODOS los conductores disponibles
-    drivers = await db.drivers.find({"available": True}, {"_id": 0, "user_id": 1}).to_list(100)
-    print(f"[EMAIL] Conductores disponibles: {len(drivers)}")
+    # Notificar por email a TODOS los conductores
+    drivers = await db.drivers.find({}, {"_id": 0, "user_id": 1}).to_list(100)
+    print(f"[EMAIL] Conductores totales: {len(drivers)}")
     for driver in drivers:
         driver_user = await db.users.find_one({"id": driver['user_id']}, {"_id": 0, "email": 1})
         if driver_user and driver_user.get('email'):

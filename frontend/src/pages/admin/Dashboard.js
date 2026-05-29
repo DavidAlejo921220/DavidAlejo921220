@@ -49,7 +49,7 @@ export default function AdminDashboard() {
           <div className="flex items-center gap-3">
             <img 
               src="https://static.prod-images.emergentagent.com/jobs/4d6d68fe-1392-4b8b-95de-0896fbae6116/images/6dd94c30201b82c0db798c24c5f11f318e92f4633b0624b679a02b2944046c88.png" 
-              alt="TowNexus" 
+              alt="GruaApp" 
               className="h-10"
             />
           </div>

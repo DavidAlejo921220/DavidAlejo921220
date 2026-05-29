@@ -44,11 +44,11 @@ export default function Login() {
         <div className="text-center mb-8">
           <img 
             src="https://static.prod-images.emergentagent.com/jobs/4d6d68fe-1392-4b8b-95de-0896fbae6116/images/6dd94c30201b82c0db798c24c5f11f318e92f4633b0624b679a02b2944046c88.png" 
-            alt="TowNexus" 
+            alt="GruaApp" 
             className="h-16 mx-auto mb-4"
           />
           <h1 className="text-4xl font-bold text-white mb-2">Iniciar Sesión</h1>
-          <p className="text-slate-400">Accede a tu cuenta de TowNexus</p>
+          <p className="text-slate-400">Accede a tu cuenta de GruaApp</p>
         </div>
 
         <form onSubmit={handleSubmit} className="glass-card p-8 rounded-xl" data-testid="login-form">

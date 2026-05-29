@@ -288,7 +288,7 @@ async def notify_client_new_offer(client_email: str, driver_name: str, price: fl
         subject="Nueva oferta para tu servicio",
         title="¡Tienes una nueva oferta!",
         message=f"El conductor {driver_name} te ha enviado una oferta de ${price:,.0f} COP para tu servicio de grúa.",
-        action_url=f"https://driver-client-hub-1.preview.emergentagent.com/client/services/{service_id}/offers",
+        action_url=f"{os.environ.get('APP_URL', 'https://gruaapp.com')}/client/services/{service_id}/offers",
         action_text="Ver Oferta"
     )
 
@@ -310,7 +310,7 @@ async def notify_client_status_change(client_email: str, status: str, driver_nam
         subject=title,
         title=title,
         message=message,
-        action_url="https://driver-client-hub-1.preview.emergentagent.com/client/dashboard",
+        action_url=f"{os.environ.get('APP_URL', 'https://gruaapp.com')}/client/dashboard",
         action_text="Ver mi servicio"
     )
 
@@ -322,7 +322,7 @@ async def notify_driver_new_service(driver_email: str, vehicle_type: str, pickup
         subject="Nuevo servicio disponible",
         title="¡Hay un nuevo servicio cerca!",
         message=f"Un cliente necesita grúa para un {vehicle_type}. Ubicación: {pickup_address}",
-        action_url="https://driver-client-hub-1.preview.emergentagent.com/driver/available",
+        action_url=f"{os.environ.get('APP_URL', 'https://gruaapp.com')}/driver/available",
         action_text="Ver Servicio"
     )
 
@@ -334,6 +334,6 @@ async def notify_driver_offer_accepted(driver_email: str, price: float, pickup_a
         subject="¡Tu oferta fue aceptada!",
         title="¡Felicidades! Tu oferta fue aceptada",
         message=f"El cliente aceptó tu oferta de ${price:,.0f} COP. Dirígete a: {pickup_address}",
-        action_url="https://driver-client-hub-1.preview.emergentagent.com/driver/services",
+        action_url=f"{os.environ.get('APP_URL', 'https://gruaapp.com')}/driver/services",
         action_text="Ver Servicio"
     )

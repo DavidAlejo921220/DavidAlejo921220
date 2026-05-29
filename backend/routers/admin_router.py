@@ -25,7 +25,11 @@ async def get_admin_dashboard(payload: dict = Depends(verify_token)):
     total_users = await db.users.count_documents({"role": "client"})
     total_drivers = await db.users.count_documents({"role": "driver"})
     
-    services = await db.services.find({"final_price": {"$exists": True}}, {"_id": 0}).to_list(10000)
+    # Optimizado: solo traer final_price con límite razonable
+    services = await db.services.find(
+        {"final_price": {"$exists": True}}, 
+        {"_id": 0, "final_price": 1}
+    ).limit(1000).to_list(1000)
     total_revenue = sum(s.get('final_price', 0) for s in services)
     commission = await db.commission_config.find_one({}, {"_id": 0})
     commission_rate = commission.get('default_rate', 0.15) if commission else 0.15

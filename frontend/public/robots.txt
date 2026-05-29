@@ -1,0 +1,22 @@
+# Robots.txt para GruaApp - gruaapp.com
+# Grúa online, grúas de carro, grúas de moto, grúas 24 horas en Colombia
+
+User-agent: *
+Allow: /
+Allow: /login
+Allow: /register
+Allow: /gruas-bogota
+Allow: /gruas-medellin
+Allow: /gruas-cali
+
+# Páginas internas de usuarios
+Disallow: /client/
+Disallow: /driver/
+Disallow: /admin/
+Disallow: /chat/
+
+# Sitemap
+Sitemap: https://gruaapp.com/sitemap.xml
+
+# Crawl-delay para ser amigable con el servidor
+Crawl-delay: 1

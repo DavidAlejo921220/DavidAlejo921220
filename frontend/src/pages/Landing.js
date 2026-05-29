@@ -12,26 +12,29 @@ export default function Landing() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('clients');
 
-  // SEO Keywords
+  // SEO Keywords optimizadas
   const seoKeywords = [
-    "Grúas en Bogotá",
-    "Servicio de grúa 24 horas",
-    "Grúas baratas Colombia",
-    "Transporte de vehículos",
-    "Grúa para carros",
-    "Trasteos Bogotá",
-    "Transporte de carga pesada",
-    "Maquinaria y estructuras",
-    "Viajes de Bogotá a todo el país",
-    "Carga especial con seguro",
-    "Manifiesto de carga"
+    "grúa online",
+    "grúas de carro",
+    "grúas de moto",
+    "grúas para salidas de patios",
+    "grúas de patios",
+    "grúas veinticuatro horas",
+    "grúas 24 horas",
+    "grúas por aplicación",
+    "grúa ya",
+    "grúas en Bogotá",
+    "servicio de grúa Colombia",
+    "transporte de vehículos",
+    "grúas baratas",
+    "grúas económicas"
   ];
 
   const services = [
-    { icon: Truck, title: "Grúas para vehículos", desc: "Carros, motos, camionetas en Bogotá y todo Colombia" },
-    { icon: Package, title: "Trasteos", desc: "Mudanzas locales y nacionales con seguro" },
-    { icon: Weight, title: "Carga pesada", desc: "Maquinaria, estructuras metálicas hasta 30 toneladas" },
-    { icon: FileText, title: "Carga especial", desc: "Con manifiesto, seguro y dimensiones especiales" }
+    { icon: Truck, title: "Grúas de Carro", desc: "Servicio de grúas para carros varados, accidentados o sin batería en Bogotá y Colombia", alt: "grúas de carro en bogotá" },
+    { icon: Package, title: "Grúas de Moto", desc: "Transporte seguro de motos con plataforma especializada. Grúas 24 horas", alt: "grúas de moto colombia" },
+    { icon: Weight, title: "Grúas para Salidas de Patios", desc: "Recogemos tu vehículo en cualquier patio. Grúas de patios disponibles ya", alt: "grúas para salidas de patios" },
+    { icon: FileText, title: "Carga Especial", desc: "Transporte de carga pesada con manifiesto y seguro incluido", alt: "transporte carga especial" }
   ];
 
   const clientFeatures = [
@@ -123,27 +126,31 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-[#0a1120] overflow-x-hidden">
       <Helmet>
-        <title>GruaApp | Servicio de Grúa en Bogotá y Todo Colombia 24 Horas | 5% Descuento</title>
-        <meta name="description" content="Servicio de grúas en Bogotá y todo el país 24 horas. Transporte de vehículos, trasteos, maquinaria y carga pesada. ¡5% de descuento en tu primer servicio! Seguro y manifiesto incluido." />
-        <meta name="keywords" content="grúas bogotá, grúa 24 horas, transporte vehículos, trasteos bogotá, carga pesada, maquinaria, grúas baratas, servicio grúa colombia, transporte nacional, carga especial seguro manifiesto" />
+        <title>Grúa Online 24 Horas | Grúas de Carro y Moto en Bogotá | GruaApp - Grúa Ya</title>
+        <meta name="description" content="Grúa online #1 en Colombia. Grúas de carro, grúas de moto y grúas para salidas de patios. Servicio de grúas veinticuatro horas en Bogotá. Pide tu grúa por aplicación. ¡Grúa ya en minutos!" />
+        <meta name="keywords" content="grúa online, grúas de carro, grúas de moto, grúas para salidas de patios, grúas de patios, grúas veinticuatro horas, grúas 24 horas, grúas por aplicación, grúa ya, grúas en Bogotá, servicio de grúa Colombia" />
         <link rel="canonical" href="https://gruaapp.com/" />
-        <meta property="og:title" content="GruaApp - Grúas y Transporte en Colombia | 5% Descuento" />
-        <meta property="og:description" content="Solicita grúa en segundos. Vehículos, trasteos, maquinaria y carga pesada. Bogotá y todo el país." />
+        <meta property="og:title" content="Grúa Online 24 Horas | Grúas de Carro y Moto | GruaApp" />
+        <meta property="og:description" content="La app #1 de grúas en Colombia. Grúas de carro, moto y salidas de patios. Servicio 24 horas. ¡Pide tu grúa ya!" />
+        <meta property="og:url" content="https://gruaapp.com/" />
+        <meta property="og:type" content="website" />
       </Helmet>
       
-      {/* H1 SEO */}
-      <h1 className="sr-only">Servicio de Grúa en Bogotá y Todo Colombia - Transporte de Vehículos, Trasteos y Carga Pesada 24 Horas</h1>
+      {/* H1 Principal SEO */}
+      <h1 className="sr-only">Grúa Online en Bogotá y Colombia - Grúas de Carro, Grúas de Moto, Grúas para Salidas de Patios - Servicio 24 Horas</h1>
       
-      {/* SEO Keywords - Hidden */}
-      <div className="sr-only" aria-hidden="true">
-        <h2>Servicios de Grúa en Bogotá y Colombia</h2>
-        <p>grúas en Bogotá, grúas 24 horas, servicio de grúa urgente, grúas baratas, transporte de vehículos nacional</p>
-        <h2>Transporte de Carga Especial</h2>
-        <p>trasteos Bogotá, mudanzas nacionales, transporte maquinaria, carga pesada, estructuras metálicas, con seguro y manifiesto</p>
-        <h2>Cobertura Nacional</h2>
-        <p>viajes de Bogotá a Medellín, Cali, Barranquilla, Cartagena, Bucaramanga y todo el país</p>
-        <h2>Promoción 5% Descuento</h2>
-        <p>5% de descuento cashback en tu primer servicio de grúa, trasteo o transporte de carga</p>
+      {/* SEO Keywords - Hidden pero indexable */}
+      <div className="sr-only">
+        <h2>Servicio de Grúas Online en Bogotá</h2>
+        <p>GruaApp es la plataforma líder de grúa online en Colombia. Ofrecemos grúas de carro y grúas de moto las 24 horas del día, los 7 días de la semana.</p>
+        <h2>Grúas para Salidas de Patios</h2>
+        <p>Especialistas en grúas para salidas de patios y grúas de patios. Recogemos tu vehículo en cualquier patio de Bogotá y Colombia.</p>
+        <h2>Grúas Veinticuatro Horas</h2>
+        <p>Servicio de grúas veinticuatro horas disponible en toda Colombia. Grúas 24 horas para emergencias vehiculares.</p>
+        <h2>Grúas por Aplicación - Grúa Ya</h2>
+        <p>Pide tu grúa por aplicación de manera fácil y rápida. Con GruaApp tienes tu grúa ya en minutos. La mejor app de grúas en Colombia.</p>
+        <h2>Cobertura Nacional de Grúas</h2>
+        <p>Grúas de carro en Bogotá, Medellín, Cali, Barranquilla, Cartagena, Bucaramanga. Servicio de grúas en todo el país.</p>
       </div>
 
       {/* Hero Section */}
@@ -154,7 +161,7 @@ export default function Landing() {
           <div className="flex items-center gap-2 sm:gap-3">
             <img 
               src="https://static.prod-images.emergentagent.com/jobs/4d6d68fe-1392-4b8b-95de-0896fbae6116/images/6dd94c30201b82c0db798c24c5f11f318e92f4633b0624b679a02b2944046c88.png" 
-              alt="GruaApp - App servicio de grúa Bogotá"
+              alt="GruaApp - Grúa online 24 horas en Bogotá Colombia"
               className="h-10 sm:h-12"
             />
           </div>
@@ -178,22 +185,24 @@ export default function Landing() {
         </nav>
 
         <div className="relative z-10 container mx-auto px-4 sm:px-6 py-12 sm:py-20 text-center">
-          <div className="text-4xl sm:text-5xl md:text-7xl font-bold text-white mb-4 sm:mb-6 tracking-tight" role="heading" aria-level="2">
-            GruaApp
-            <span className="block text-[#00e0ff] mt-2 text-3xl sm:text-4xl md:text-5xl">Tu Grúa en Minutos</span>
-          </div>
+          {/* H2 visible con keywords */}
+          <h2 className="text-4xl sm:text-5xl md:text-7xl font-bold text-white mb-4 sm:mb-6 tracking-tight">
+            Grúa Online
+            <span className="block text-[#00e0ff] mt-2 text-3xl sm:text-4xl md:text-5xl">¡Tu Grúa Ya en Minutos!</span>
+          </h2>
           
           {/* Banner Cashback */}
           <div className="inline-block bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/50 rounded-full px-6 py-2 mb-6">
-            <span className="text-green-400 font-bold">🎉 ¡5% CASHBACK en tu primer servicio!</span>
+            <span className="text-green-400 font-bold">🎉 ¡5% CASHBACK en tu primer servicio de grúa!</span>
           </div>
           
           <p className="text-base sm:text-xl text-slate-300 mb-6 max-w-3xl mx-auto leading-relaxed px-4">
-            Servicio de grúas en <strong className="text-white">Bogotá y todo Colombia</strong>. 
-            Transporte de vehículos, trasteos, maquinaria y carga pesada 24/7.
+            <strong className="text-white">Grúas de carro y grúas de moto</strong> en Bogotá y toda Colombia. 
+            Servicio de <strong className="text-[#00e0ff]">grúas 24 horas</strong>. Grúas para salidas de patios. 
+            ¡Pide tu grúa por aplicación ahora!
           </p>
 
-          {/* Servicios destacados */}
+          {/* Servicios destacados con keywords */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-4xl mx-auto mb-8">
             {services.map((service, idx) => (
               <div key={idx} className="bg-white/5 border border-white/10 rounded-xl p-3 text-center">

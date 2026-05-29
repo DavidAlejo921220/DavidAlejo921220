@@ -1,6 +1,7 @@
 {
-  "short_name": "GruaApp",
-  "name": "GruaApp - Servicio de Grúas",
+  "short_name": "Grúa Online",
+  "name": "GruaApp - Grúa Online 24 Horas | Grúas de Carro y Moto",
+  "description": "App de grúas online en Colombia. Grúas de carro, grúas de moto, grúas para salidas de patios. Servicio 24 horas.",
   "icons": [
     {
       "src": "favicon.ico",
@@ -10,17 +11,22 @@
     {
       "src": "logo192.png",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "192x192",
+      "purpose": "any maskable"
     },
     {
       "src": "logo512.png",
       "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "512x512",
+      "purpose": "any maskable"
     }
   ],
-  "start_url": ".",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "portrait",
   "theme_color": "#00e0ff",
-  "background_color": "#0a0f1a",
-  "gcm_sender_id": ""
+  "background_color": "#0a1120",
+  "categories": ["transportation", "utilities"],
+  "lang": "es-CO"
 }

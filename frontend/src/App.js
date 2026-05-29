@@ -24,6 +24,7 @@ import CommissionConfig from './pages/admin/Commission';
 import WalletManagement from './pages/admin/WalletManagement';
 import DriversValidation from './pages/admin/DriversValidation';
 import WithdrawalRequests from './pages/admin/WithdrawalRequests';
+import AdminServices from './pages/admin/Services';
 import Chat from './pages/Chat';
 import MyWallet from './pages/MyWallet';
 // SEO Pages
@@ -162,6 +163,14 @@ function App() {
                 element={
                   <ProtectedRoute allowedRoles={['admin']}>
                     <UsersManagement />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/services"
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <AdminServices />
                   </ProtectedRoute>
                 }
               />

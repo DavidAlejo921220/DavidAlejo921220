@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useSocket } from '@/contexts/SocketContext';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Plus, MapPin, Clock, TrendingUp, MessageCircle, Truck, Eye, CheckCircle, Navigation, Phone, User, Star, Wallet } from 'lucide-react';
+import { Plus, MapPin, Clock, TrendingUp, MessageCircle, Truck, Eye, CheckCircle, Navigation, Phone, User, Star, Wallet, XCircle } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -142,6 +142,19 @@ export default function ClientDashboard() {
     }
     
     setShowDetailDialog(true);
+
+  const handleCancelService = async (serviceId) => {
+    if (!window.confirm('¿Estás seguro de cancelar este servicio?')) return;
+    try {
+      await axios.delete(`${API}/services/${serviceId}/cancel`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success('Servicio cancelado');
+      loadServices();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Error al cancelar');
+    }
+  };
     
     // Si el servicio está completado, verificar si necesita calificación
     if (service.status === 'completed') {
@@ -371,6 +384,18 @@ export default function ClientDashboard() {
                         <Eye className="h-4 w-4 mr-1" />
                         Ver Detalle
                       </Button>
+                      {['created', 'negotiating'].includes(service.status) && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleCancelService(service.id)}
+                          className="mt-2 ml-2 border-red-500/50 text-red-400 hover:bg-red-500/10"
+                          data-testid={`cancel-service-${service.id}`}
+                        >
+                          <XCircle className="h-4 w-4 mr-1" />
+                          Cancelar
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </div>

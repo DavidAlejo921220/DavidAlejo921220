@@ -40,6 +40,15 @@ async def get_admin_dashboard(payload: dict = Depends(verify_token)):
         total_commission=total_commission
     )
 
+@router.get("/services", response_model=list)
+async def get_all_services(payload: dict = Depends(verify_token)):
+    """Admin obtiene lista de todos los servicios"""
+    if payload['role'] != 'admin':
+        raise HTTPException(status_code=403, detail="Solo administradores")
+    
+    services = await db.services.find({}, {"_id": 0}).sort("created_at", -1).to_list(500)
+    return services
+
 @router.get("/users", response_model=list[UserResponse])
 async def get_all_users(payload: dict = Depends(verify_token)):
     """Obtiene lista de todos los usuarios"""

@@ -175,6 +175,13 @@ export default function AdminDashboard() {
                     Gestionar Usuarios
                   </Button>
                   <Button
+                    onClick={() => navigate('/admin/services')}
+                    className="w-full bg-blue-500 text-white hover:bg-blue-600 font-bold justify-start"
+                  >
+                    <Truck className="mr-2 h-5 w-5" />
+                    Gestionar Servicios
+                  </Button>
+                  <Button
                     onClick={() => navigate('/admin/withdrawals')}
                     className="w-full bg-green-500 text-white hover:bg-green-600 font-bold justify-start"
                   >

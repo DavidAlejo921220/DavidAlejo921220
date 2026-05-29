@@ -37,7 +37,7 @@ export default function AdminServices() {
   const handleDeleteService = async (serviceId) => {
     if (!window.confirm('¿Estás seguro de eliminar este servicio?')) return;
     try {
-      await axios.delete(`${API}/services/${serviceId}/cancel`, {
+      await axios.delete(`${API}/services/${serviceId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       toast.success('Servicio eliminado');

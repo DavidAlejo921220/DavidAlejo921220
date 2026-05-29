@@ -146,7 +146,7 @@ export default function ClientDashboard() {
   const handleCancelService = async (serviceId) => {
     if (!window.confirm('¿Estás seguro de cancelar este servicio?')) return;
     try {
-      await axios.delete(`${API}/services/${serviceId}/cancel`, {
+      await axios.delete(`${API}/services/${serviceId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       toast.success('Servicio cancelado');
